@@ -1,3 +1,9 @@
+import HeroSection from "@/components/HeroSection"
+
 export default function Home() {
-  return <div>{/* <h1>HireSync</h1> */}</div>
+  return (
+    <main>
+      <HeroSection />
+    </main>
+  )
 }
