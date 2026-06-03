@@ -135,7 +135,7 @@ export default function EmployerDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
           <div
             className="bg-white rounded-2xl shadow-sm p-6 flex flex-col"
-            style={{height: "420px"}}
+            style={{height: "520px"}}
           >
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               My Posted Jobs
@@ -188,7 +188,7 @@ export default function EmployerDashboard() {
 
           <div
             className="bg-white rounded-2xl shadow-sm p-6 flex flex-col"
-            style={{height: "420px"}}
+            style={{height: "520px"}}
           >
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               Recent Applicants
