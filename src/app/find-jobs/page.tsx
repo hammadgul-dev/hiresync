@@ -1,7 +1,14 @@
 "use client"
 
 import {useState} from "react"
-import {Search, MapPin, Bookmark, Building2} from "lucide-react"
+import {
+  Search,
+  MapPin,
+  Bookmark,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 
 const jobs = [
   {
@@ -50,6 +57,7 @@ const jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
 const experienceLevels = ["Entry Level", "Mid Level", "Senior Level"]
 const categories = ["Technology", "Marketing", "Design"]
 const sortOptions = ["Most Recent", "Most Relevant", "Highest Salary"]
+const totalPages = 12
 
 export default function FindJobsPage() {
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([
@@ -62,6 +70,7 @@ export default function FindJobsPage() {
   const [searchTitle, setSearchTitle] = useState("")
   const [searchLocation, setSearchLocation] = useState("")
   const [saved, setSaved] = useState<number[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
 
   const toggle = (
     list: string[],
@@ -75,6 +84,25 @@ export default function FindJobsPage() {
     setSaved((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     )
+  }
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = []
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      if (currentPage > 3) pages.push("...")
+      for (
+        let i = Math.max(2, currentPage - 1);
+        i <= Math.min(totalPages - 1, currentPage + 1);
+        i++
+      )
+        pages.push(i)
+      if (currentPage < totalPages - 2) pages.push("...")
+      pages.push(totalPages)
+    }
+    return pages
   }
 
   return (
@@ -191,8 +219,8 @@ export default function FindJobsPage() {
             </div>
           </div>
 
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
                   1,240 Jobs Found
@@ -201,8 +229,10 @@ export default function FindJobsPage() {
                   Matching your current search criteria
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Sort by:</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-sm text-gray-500 whitespace-nowrap">
+                  Sort by:
+                </span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -219,22 +249,22 @@ export default function FindJobsPage() {
               {jobs.map((job) => (
                 <div
                   key={job.id}
-                  className="bg-white rounded-2xl shadow-sm p-5 flex items-start gap-4 hover:shadow-md transition"
+                  className="bg-white rounded-2xl shadow-sm p-4 sm:p-5 flex items-start gap-3 sm:gap-4 hover:shadow-md transition"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#eef1fb] flex items-center justify-center text-[#2d4fd6] font-bold text-sm shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#eef1fb] flex items-center justify-center text-[#2d4fd6] font-bold text-xs sm:text-sm shrink-0">
                     {job.logo}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-gray-900 text-base">
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">
                         {job.title}
                       </h3>
                       <button
                         onClick={() => toggleSave(job.id)}
-                        className="cursor-pointer text-gray-400 hover:text-[#2d4fd6] transition shrink-0"
+                        className="cursor-pointer text-gray-400 hover:text-[#2d4fd6] transition shrink-0 mt-0.5"
                       >
                         <Bookmark
-                          size={18}
+                          size={17}
                           fill={saved.includes(job.id) ? "#2d4fd6" : "none"}
                           stroke={
                             saved.includes(job.id) ? "#2d4fd6" : "currentColor"
@@ -242,23 +272,23 @@ export default function FindJobsPage() {
                         />
                       </button>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
-                      <Building2 size={13} />
+                    <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-gray-500 mt-1">
+                      <Building2 size={12} className="shrink-0" />
                       <span>{job.company}</span>
-                      <span className="mx-1">·</span>
-                      <MapPin size={13} />
-                      <span>{job.location}</span>
+                      <span className="mx-0.5">·</span>
+                      <MapPin size={12} className="shrink-0" />
+                      <span className="truncate">{job.location}</span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <div className="flex flex-wrap items-center gap-2 mt-2.5">
                       {job.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="text-xs bg-[#eef1fb] text-[#2d4fd6] px-3 py-1 rounded-full"
+                          className="text-xs bg-[#eef1fb] text-[#2d4fd6] px-2.5 py-0.5 rounded-full"
                         >
                           {tag}
                         </span>
                       ))}
-                      <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full">
                         {job.salary}
                       </span>
                     </div>
@@ -273,6 +303,49 @@ export default function FindJobsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 mt-8">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-[#2d4fd6] hover:text-[#2d4fd6] disabled:opacity-40 cursor-pointer transition"
+              >
+                <ChevronLeft size={15} />
+              </button>
+
+              {getPageNumbers().map((page, i) =>
+                page === "..." ? (
+                  <span
+                    key={i}
+                    className="w-8 h-8 flex items-center justify-center text-sm text-gray-400"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(page as number)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm cursor-pointer transition border ${
+                      currentPage === page
+                        ? "bg-[#2d4fd6] text-white border-[#2d4fd6]"
+                        : "bg-white text-gray-600 border-gray-200 hover:border-[#2d4fd6] hover:text-[#2d4fd6]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-[#2d4fd6] hover:text-[#2d4fd6] disabled:opacity-40 cursor-pointer transition"
+              >
+                <ChevronRight size={15} />
+              </button>
             </div>
           </div>
         </div>
