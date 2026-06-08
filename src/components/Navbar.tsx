@@ -3,59 +3,56 @@
 import Link from "next/link"
 import {Briefcase, Menu, X} from "lucide-react"
 import {useState} from "react"
+import {usePathname} from "next/navigation"
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname()
+
+  const links = [
+    {href: "/find-jobs", label: "Find Jobs"},
+    {href: "/companies", label: "Companies"},
+    {href: "/salaries", label: "Salaries"},
+    {href: "/resources", label: "Resources"},
+  ]
 
   return (
     <nav className="w-full bg-white border-b border-gray-200 shadow-sm px-4 md:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto h-16 flex items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2 text-blue-600 font-bold text-xl"
+          className="flex items-center gap-2 text-[#2d4fd6] font-bold text-xl"
         >
           <Briefcase size={22} />
           <span>HireSync</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-          <Link
-            href="/jobs"
-            className="text-blue-600 border-b-2 border-blue-600 pb-1"
-          >
-            Find Jobs
-          </Link>
-          <Link
-            href="/companies"
-            className="hover:text-blue-600 transition-colors"
-          >
-            Companies
-          </Link>
-          <Link
-            href="/salaries"
-            className="hover:text-blue-600 transition-colors"
-          >
-            Salaries
-          </Link>
-          <Link
-            href="/resources"
-            className="hover:text-blue-600 transition-colors"
-          >
-            Resources
-          </Link>
+          {links.map(({href, label}) => (
+            <Link
+              key={href}
+              href={href}
+              className={`pb-1 transition-colors ${
+                pathname === href
+                  ? "text-[#2d4fd6] border-b-2 border-[#2d4fd6]"
+                  : "hover:text-[#2d4fd6]"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
         <div className="hidden md:flex items-center gap-3">
           <Link
-            href="/login"
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+            href="/auth/login"
+            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#2d4fd6] transition-colors"
           >
             Login
           </Link>
-
           <Link
-            href="/register"
-            className="px-6 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            href="/auth/register"
+            className="px-6 py-2.5 text-sm font-medium bg-[#2d4fd6] text-white rounded-lg hover:bg-[#2440b8] transition-colors"
           >
             Register
           </Link>
@@ -63,7 +60,7 @@ const Navbar = () => {
 
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-gray-600"
+          className="md:hidden text-gray-600 cursor-pointer"
           aria-label="Toggle Menu"
         >
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -72,48 +69,30 @@ const Navbar = () => {
 
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-6 py-4 flex flex-col gap-4">
-          <Link
-            href="/jobs"
-            className="text-sm font-medium text-blue-600"
-            onClick={() => setMenuOpen(false)}
-          >
-            Find Jobs
-          </Link>
-          <Link
-            href="/companies"
-            className="text-sm font-medium text-gray-600"
-            onClick={() => setMenuOpen(false)}
-          >
-            Companies
-          </Link>
-          <Link
-            href="/salaries"
-            className="text-sm font-medium text-gray-600"
-            onClick={() => setMenuOpen(false)}
-          >
-            Salaries
-          </Link>
-          <Link
-            href="/resources"
-            className="text-sm font-medium text-gray-600"
-            onClick={() => setMenuOpen(false)}
-          >
-            Resources
-          </Link>
-
+          {links.map(({href, label}) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMenuOpen(false)}
+              className={`text-sm font-medium transition-colors ${
+                pathname === href ? "text-[#2d4fd6]" : "text-gray-600"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
           <div className="flex gap-3 pt-3 border-t border-gray-100">
             <Link
-              href="/login"
-              className="w-full text-center px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg"
+              href="/auth/login"
               onClick={() => setMenuOpen(false)}
+              className="w-full text-center px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg cursor-pointer"
             >
               Login
             </Link>
-
             <Link
-              href="/register"
-              className="w-full text-center px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              href="/auth/register"
               onClick={() => setMenuOpen(false)}
+              className="w-full text-center px-4 py-2 text-sm font-medium bg-[#2d4fd6] text-white rounded-lg hover:bg-[#2440b8] transition-colors cursor-pointer"
             >
               Register
             </Link>
