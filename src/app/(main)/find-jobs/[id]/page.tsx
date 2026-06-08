@@ -15,6 +15,7 @@ import {
   Bell,
   X,
 } from "lucide-react"
+import ApplyModal from "@/components/ApplyModal"
 
 const job = {
   title: "Senior Software Engineer",
@@ -161,6 +162,7 @@ export default function JobDetailPage() {
   const [savedJob, setSavedJob] = useState(false)
   const [showNotifModal, setShowNotifModal] = useState(false)
   const [notifEmail, setNotifEmail] = useState("")
+  const [applyOpen, setApplyOpen] = useState(false)
 
   return (
     <div
@@ -216,7 +218,10 @@ export default function JobDetailPage() {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 w-full sm:w-auto">
-                  <button className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition text-center">
+                  <button
+                    onClick={() => setApplyOpen(true)}
+                    className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition text-center"
+                  >
                     Apply Now
                   </button>
                   <button
@@ -322,6 +327,13 @@ export default function JobDetailPage() {
           </div>
         </div>
       </main>
+      {applyOpen && (
+        <ApplyModal
+          jobTitle="Senior Frontend Developer"
+          company="TechFlow Solutions"
+          onClose={() => setApplyOpen(false)}
+        />
+      )}
     </div>
   )
 }
