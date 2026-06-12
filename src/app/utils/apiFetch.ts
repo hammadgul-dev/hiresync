@@ -3,12 +3,11 @@ export default async function apiFetch(
   httpMethod = "GET",
   data?: any,
 ) {
-  let token = localStorage.getItem("token")
   try {
     let apiResp = await fetch(apiURL, {
       method: httpMethod,
+      credentials: "include",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body:
