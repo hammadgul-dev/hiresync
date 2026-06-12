@@ -3,9 +3,82 @@
 import {useState} from "react"
 import {User, Briefcase} from "lucide-react"
 import Link from "next/link"
+import toast from "react-hot-toast"
 
 export default function RegisterPage() {
   const [role, setRole] = useState<"jobSeeker" | "employer">("jobSeeker")
+  let [jobSeeker, setJobSeeker] = useState({
+    name: "",
+    email: "",
+    password: "",
+    cPassword: "",
+  })
+  let [employer, setEmployer] = useState({
+    name: "",
+    companyName: "",
+    email: "",
+    password: "",
+    cPassword: "",
+  })
+
+  async function handleRegisterForm() {
+    let data = role === "jobSeeker" ? jobSeeker : employer
+    if (!data.name.trim()) return toast.error("Name Is Required!")
+    if (/^[0-9]/.test(data.name.trim()))
+      return toast.error("Name Must Start With a Letter!")
+    if (role === "employer") {
+      if (!employer.companyName.trim())
+        return toast.error("Company name is required!")
+      if (/^[0-9]/.test(employer.companyName.trim()))
+        return toast.error("Company name must start with a letter!")
+    }
+    if (!data.email.trim()) return toast.error("Email is required!")
+    if (
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+        data.email.trim(),
+      )
+    )
+      return toast.error("Invalid email!")
+    if (!data.password.trim()) return toast.error("Password is required!")
+    if (data.password.trim().length < 6)
+      return toast.error("Password must be at least 6 characters!")
+    if (!data.cPassword.trim())
+      return toast.error("Confirm password is required!")
+    if (data.password.trim() !== data.cPassword.trim())
+      return toast.error("Passwords do not match!")
+
+    try {
+      let payload = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: role,
+        companyName: role === "employer" ? employer.companyName : "",
+      }
+      let res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload),
+      })
+      let apiData = await res.json()
+      if (!res.ok)
+        return toast.error(apiData?.message || "Error Occur During Register")
+      toast.success(apiData?.message)
+      if (role === "jobSeeker") {
+        setJobSeeker({name: "", email: "", password: "", cPassword: ""})
+      } else {
+        setEmployer({
+          name: "",
+          companyName: "",
+          email: "",
+          password: "",
+          cPassword: "",
+        })
+      }
+    } catch (e) {
+      toast.error((e as Error)?.message)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center px-4 py-8">
@@ -51,7 +124,12 @@ export default function RegisterPage() {
             </label>
             <input
               type="text"
-              placeholder="John Doe"
+              onChange={(e) =>
+                role === "jobSeeker"
+                  ? setJobSeeker({...jobSeeker, name: e.target.value})
+                  : setEmployer({...employer, name: e.target.value})
+              }
+              placeholder="Enter Your Name"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
             />
           </div>
@@ -63,7 +141,10 @@ export default function RegisterPage() {
               </label>
               <input
                 type="text"
-                placeholder="Acme Inc."
+                placeholder="Enter Company Name"
+                onChange={(e) =>
+                  setEmployer({...employer, companyName: e.target.value})
+                }
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
               />
             </div>
@@ -75,7 +156,12 @@ export default function RegisterPage() {
             </label>
             <input
               type="email"
-              placeholder="john@example.com"
+              placeholder="Enter Your Email"
+              onChange={(e) =>
+                role === "jobSeeker"
+                  ? setJobSeeker({...jobSeeker, email: e.target.value})
+                  : setEmployer({...employer, email: e.target.value})
+              }
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
             />
           </div>
@@ -88,6 +174,11 @@ export default function RegisterPage() {
               <input
                 type="password"
                 placeholder="••••••••"
+                onChange={(e) =>
+                  role === "jobSeeker"
+                    ? setJobSeeker({...jobSeeker, password: e.target.value})
+                    : setEmployer({...employer, password: e.target.value})
+                }
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
               />
             </div>
@@ -98,6 +189,11 @@ export default function RegisterPage() {
               <input
                 type="password"
                 placeholder="••••••••"
+                onChange={(e) =>
+                  role === "jobSeeker"
+                    ? setJobSeeker({...jobSeeker, cPassword: e.target.value})
+                    : setEmployer({...employer, cPassword: e.target.value})
+                }
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
               />
             </div>
@@ -131,7 +227,10 @@ export default function RegisterPage() {
             Continue with Google
           </button>
 
-          <button className="w-full bg-[#2d4fd6] hover:bg-[#2440b8] text-white font-medium py-2 rounded-lg cursor-pointer transition-colors text-sm">
+          <button
+            onClick={() => handleRegisterForm()}
+            className="w-full bg-[#2d4fd6] hover:bg-[#2440b8] text-white font-medium py-2 rounded-lg cursor-pointer transition-colors text-sm"
+          >
             Create Account
           </button>
         </div>
