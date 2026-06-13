@@ -45,7 +45,7 @@ export default function RegisterPage() {
     if (!data.cPassword.trim())
       return toast.error("Confirm password is required!")
     if (data.password.trim() !== data.cPassword.trim())
-      return toast.error("Passwords do not match!")
+      return toast.error("Passwords Do Not Match!")
 
     try {
       let payload = {
@@ -124,6 +124,7 @@ export default function RegisterPage() {
             </label>
             <input
               type="text"
+              value={role === "jobSeeker" ? jobSeeker.name : employer.name}
               onChange={(e) =>
                 role === "jobSeeker"
                   ? setJobSeeker({...jobSeeker, name: e.target.value})
@@ -141,6 +142,7 @@ export default function RegisterPage() {
               </label>
               <input
                 type="text"
+                value={employer.companyName}
                 placeholder="Enter Company Name"
                 onChange={(e) =>
                   setEmployer({...employer, companyName: e.target.value})
@@ -157,6 +159,7 @@ export default function RegisterPage() {
             <input
               type="email"
               placeholder="Enter Your Email"
+              value={role === "jobSeeker" ? jobSeeker.email : employer.email}
               onChange={(e) =>
                 role === "jobSeeker"
                   ? setJobSeeker({...jobSeeker, email: e.target.value})
@@ -174,6 +177,9 @@ export default function RegisterPage() {
               <input
                 type="password"
                 placeholder="••••••••"
+                value={
+                  role === "jobSeeker" ? jobSeeker.password : employer.password
+                }
                 onChange={(e) =>
                   role === "jobSeeker"
                     ? setJobSeeker({...jobSeeker, password: e.target.value})
@@ -189,6 +195,11 @@ export default function RegisterPage() {
               <input
                 type="password"
                 placeholder="••••••••"
+                value={
+                  role === "jobSeeker"
+                    ? jobSeeker.cPassword
+                    : employer.cPassword
+                }
                 onChange={(e) =>
                   role === "jobSeeker"
                     ? setJobSeeker({...jobSeeker, cPassword: e.target.value})
