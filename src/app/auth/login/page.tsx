@@ -3,9 +3,46 @@
 import {useState} from "react"
 import {Mail, Lock, Eye, EyeOff} from "lucide-react"
 import Link from "next/link"
+import {signIn} from "next-auth/react"
+import {useRouter} from "next/navigation"
+import toast from "react-hot-toast"
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  let [showPassword, setShowPassword] = useState(false)
+  let router = useRouter()
+
+  let [emailInfo, setEmailInfo] = useState({
+    email: "",
+    password: "",
+  })
+
+  async function handleLoginForm() {
+    let {email, password} = emailInfo
+    if (!email || !password) return toast.error("Both Field Are Required!")
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email))
+      return toast.error("Invalid email!")
+    if (password.length < 6)
+      return toast.error("Password must be at least 6 characters!")
+
+    let res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    })
+    if (res?.error) {
+      return toast.error(res.error)
+    }
+    let sessionRes = await fetch("/api/auth/session")
+    let session = await sessionRes.json()
+    let role = session?.user?.role
+    toast.success("Login Successful")
+
+    if (role === "employer") {
+      router.push("/employer-dashboard")
+    } else {
+      router.push("/job-seeker-dashboard")
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center px-4 py-8">
@@ -26,6 +63,10 @@ export default function LoginPage() {
               <Mail size={15} className="text-gray-400 shrink-0" />
               <input
                 type="email"
+                value={emailInfo.email}
+                onChange={(e) =>
+                  setEmailInfo({...emailInfo, email: e.target.value})
+                }
                 placeholder="name@company.com"
                 className="flex-1 text-sm outline-none bg-transparent"
               />
@@ -48,6 +89,10 @@ export default function LoginPage() {
               <Lock size={15} className="text-gray-400 shrink-0" />
               <input
                 type={showPassword ? "text" : "password"}
+                value={emailInfo.password}
+                onChange={(e) =>
+                  setEmailInfo({...emailInfo, password: e.target.value})
+                }
                 placeholder="••••••••"
                 className="flex-1 text-sm outline-none bg-transparent"
               />
@@ -60,7 +105,10 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button className="w-full bg-[#2d4fd6] hover:bg-[#2440b8] text-white font-medium py-2 rounded-lg cursor-pointer transition-colors text-sm mt-1">
+          <button
+            onClick={() => handleLoginForm()}
+            className="w-full bg-[#2d4fd6] hover:bg-[#2440b8] text-white font-medium py-2 rounded-lg cursor-pointer transition-colors text-sm mt-1"
+          >
             Login
           </button>
 
