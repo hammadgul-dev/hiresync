@@ -12,6 +12,7 @@ let authSchema = new mongoose.Schema(
     password: {type: String, required: true},
     role: {type: String, enum: ["employer", "jobSeeker"], required: true},
     companyName: {type: String},
+    isProfileComplete: {type: Boolean, default: false},
   },
   {timestamps: true},
 )

@@ -35,8 +35,12 @@ export default function LoginPage() {
     let sessionRes = await fetch("/api/auth/session")
     let session = await sessionRes.json()
     let role = session?.user?.role
+    let isProfileComplete = session?.user?.isProfileComplete
     toast.success("Login Successful")
 
+    if (!isProfileComplete) {
+      return router.push("/profile-setup")
+    }
     if (role === "employer") {
       router.push("/employer-dashboard")
     } else {

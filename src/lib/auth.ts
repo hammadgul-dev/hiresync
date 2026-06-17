@@ -31,6 +31,7 @@ let authOptions: NextAuthOptions = {
           email: user.email,
           role: user.role,
           companyName: user.companyName,
+          isProfileComplete: user.isProfileComplete,
         }
       },
     }),
@@ -42,6 +43,7 @@ let authOptions: NextAuthOptions = {
         token.role = (user as any).role
         token.id = (user as any).id
         token.companyName = (user as any).companyName
+        token.isProfileComplete = (user as any).isProfileComplete
       }
       return token
     },
@@ -51,6 +53,7 @@ let authOptions: NextAuthOptions = {
         user.role = token.role
         user.id = token.id
         user.companyName = token.companyName
+        user.isProfileComplete = token.isProfileComplete
       }
       return session
     },
