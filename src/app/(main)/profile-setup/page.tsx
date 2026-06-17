@@ -2,6 +2,7 @@
 
 import {useState, useRef} from "react"
 import {MapPin, Plus, X, Trash2, Sparkles, Globe, Building2} from "lucide-react"
+import {useSession} from "next-auth/react"
 
 interface Experience {
   id: number
@@ -35,15 +36,16 @@ const industries = [
 const companySizes = ["1-10", "10-50", "50-200", "200-500", "500-1000", "1000+"]
 
 export default function ProfileSetupPage() {
-  const [role, setRole] = useState<"jobSeeker" | "employer">("jobSeeker")
-  const [photo, setPhoto] = useState<string | null>(null)
-  const [skills, setSkills] = useState<string[]>([
+  let {data: session} = useSession()
+  let role = session?.user?.role as "jobSeeker" | "employer"
+  let [photo, setPhoto] = useState<string | null>(null)
+  let [skills, setSkills] = useState<string[]>([
     "React",
     "TypeScript",
     "Tailwind CSS",
   ])
-  const [skillInput, setSkillInput] = useState("")
-  const [experiences, setExperiences] = useState<Experience[]>([
+  let [skillInput, setSkillInput] = useState("")
+  let [experiences, setExperiences] = useState<Experience[]>([
     {
       id: 1,
       title: "Senior Frontend Engineer",
@@ -129,14 +131,14 @@ export default function ProfileSetupPage() {
 
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => setRole("jobSeeker")}
-            className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all text-sm font-medium ${role === "jobSeeker" ? "border-[#2d4fd6] bg-[#f0f4ff] text-[#2d4fd6]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
+            disabled
+            className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-not-allowed text-sm font-medium ${role === "jobSeeker" ? "border-[#2d4fd6] bg-[#f0f4ff] text-[#2d4fd6]" : "border-gray-200 text-gray-400 opacity-50"}`}
           >
             Job Seeker
           </button>
           <button
-            onClick={() => setRole("employer")}
-            className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all text-sm font-medium ${role === "employer" ? "border-[#2d4fd6] bg-[#f0f4ff] text-[#2d4fd6]" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
+            disabled
+            className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-not-allowed text-sm font-medium ${role === "employer" ? "border-[#2d4fd6] bg-[#f0f4ff] text-[#2d4fd6]" : "border-gray-200 text-gray-400 opacity-50"}`}
           >
             Employer
           </button>
