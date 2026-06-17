@@ -78,12 +78,6 @@ export default function LoginPage() {
               <label className="text-xs font-medium text-gray-700">
                 Password
               </label>
-              <Link
-                href="#"
-                className="text-xs text-[#2d4fd6] hover:underline cursor-pointer"
-              >
-                Forgot Password?
-              </Link>
             </div>
             <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 gap-2 focus-within:ring-2 focus-within:ring-[#2d4fd6] focus-within:border-transparent">
               <Lock size={15} className="text-gray-400 shrink-0" />
