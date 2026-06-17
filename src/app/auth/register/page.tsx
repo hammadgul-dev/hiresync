@@ -4,9 +4,12 @@ import {useState} from "react"
 import {User, Briefcase} from "lucide-react"
 import Link from "next/link"
 import toast from "react-hot-toast"
+import {signIn} from "next-auth/react"
+import {useRouter} from "next/navigation"
 
 export default function RegisterPage() {
   const [role, setRole] = useState<"jobSeeker" | "employer">("jobSeeker")
+  let router = useRouter()
   let [jobSeeker, setJobSeeker] = useState({
     name: "",
     email: "",
@@ -63,17 +66,25 @@ export default function RegisterPage() {
       let apiData = await res.json()
       if (!res.ok)
         return toast.error(apiData?.message || "Error Occur During Register")
-      toast.success(apiData?.message)
-      if (role === "jobSeeker") {
-        setJobSeeker({name: "", email: "", password: "", cPassword: ""})
+      let loginRes = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      })
+      if (loginRes?.error) {
+        toast.success("Registered! Please login.")
+        return router.push("/auth/login")
+      }
+      toast.success("Account Created Successfully")
+
+      let sessionRes = await fetch("/api/auth/session")
+      let session = await sessionRes.json()
+      let userRole = session?.user?.role
+
+      if (userRole === "employer") {
+        router.push("/employer-dashboard")
       } else {
-        setEmployer({
-          name: "",
-          companyName: "",
-          email: "",
-          password: "",
-          cPassword: "",
-        })
+        router.push("/job-seeker-dashboard")
       }
     } catch (e) {
       toast.error((e as Error)?.message)
