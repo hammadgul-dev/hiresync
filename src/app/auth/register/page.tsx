@@ -80,7 +80,11 @@ export default function RegisterPage() {
       let sessionRes = await fetch("/api/auth/session")
       let session = await sessionRes.json()
       let userRole = session?.user?.role
+      let isProfileComplete = session?.user?.isProfileComplete
 
+      if (!isProfileComplete) {
+        return router.push("/profile-setup")
+      }
       if (userRole === "employer") {
         router.push("/employer-dashboard")
       } else {

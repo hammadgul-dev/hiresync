@@ -2,6 +2,7 @@ import type {Metadata} from "next"
 import {Poppins} from "next/font/google"
 import "./globals.css"
 import ToasterProvider from "@/components/ToasterProvider"
+import AuthProvider from "@/components/AuthProvider"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -18,8 +19,10 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className={poppins.variable}>
       <body>
-        <ToasterProvider />
-        {children}
+        <AuthProvider>
+          <ToasterProvider />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
