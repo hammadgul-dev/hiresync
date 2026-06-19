@@ -1,27 +1,11 @@
 "use client"
 
 import {useState, useRef} from "react"
-import {MapPin, Plus, X, Trash2, Sparkles, Globe, Building2} from "lucide-react"
+import {MapPin, Plus, X, Trash2, Globe} from "lucide-react"
 import {useSession} from "next-auth/react"
+import toast from "react-hot-toast"
 
-interface Experience {
-  id: number
-  title: string
-  company: string
-  startDate: string
-  endDate: string
-  current: boolean
-  description: string
-}
-
-interface Education {
-  id: number
-  degree: string
-  institution: string
-  year: string
-}
-
-const industries = [
+let industries = [
   "Software Development",
   "Artificial Intelligence",
   "Cybersecurity",
@@ -33,72 +17,75 @@ const industries = [
   "Healthcare Tech",
   "Finance & Fintech",
 ]
-const companySizes = ["1-10", "10-50", "50-200", "200-500", "500-1000", "1000+"]
+let companySizes = ["1-10", "10-50", "50-200", "200-500", "500-1000", "1000+"]
 
 export default function ProfileSetupPage() {
   let {data: session} = useSession()
   let role = session?.user?.role as "jobSeeker" | "employer"
+
   let [photo, setPhoto] = useState<string | null>(null)
-  let [skills, setSkills] = useState<string[]>([
-    "React",
-    "TypeScript",
-    "Tailwind CSS",
-  ])
+  let [skills, setSkills] = useState<string[]>([])
   let [skillInput, setSkillInput] = useState("")
-  let [experiences, setExperiences] = useState<Experience[]>([
-    {
-      id: 1,
-      title: "Senior Frontend Engineer",
-      company: "TechFlow Solutions",
-      startDate: "Jan 2021",
-      endDate: "",
-      current: true,
-      description:
-        "Led the redesign of the core dashboard application using React and Tailwind.",
-    },
-  ])
-  const [educations, setEducations] = useState<Education[]>([
-    {
-      id: 1,
-      degree: "B.S. Computer Science",
-      institution: "Stanford University",
-      year: "2020",
-    },
-  ])
-  const [showExpForm, setShowExpForm] = useState(false)
-  const [showEduForm, setShowEduForm] = useState(false)
-  const [newExp, setNewExp] = useState<Omit<Experience, "id">>({
-    title: "",
-    company: "",
+  let [experiences, setExperiences] = useState<any[]>([])
+  let [educations, setEducations] = useState<any[]>([])
+  let [showExpForm, setShowExpForm] = useState(false)
+  let [showEduForm, setShowEduForm] = useState(false)
+
+  let [jobSeekerForm, setJobSeekerForm] = useState({
+    fullName: "",
+    jobTitle: "",
+    location: "",
+    shortBio: "",
+  })
+
+  let [employerForm, setEmployerForm] = useState({
+    fullName: "",
+    industry: industries[0],
+    companySize: companySizes[0],
+    location: "",
+    website: "",
+    companyDescription: "",
+  })
+
+  let [newExp, setNewExp] = useState({
+    jobTitle: "",
+    companyName: "",
     startDate: "",
     endDate: "",
     current: false,
     description: "",
   })
-  const [newEdu, setNewEdu] = useState<Omit<Education, "id">>({
-    degree: "",
+
+  let [newEdu, setNewEdu] = useState({
+    degreeName: "",
     institution: "",
     year: "",
   })
-  const fileRef = useRef<HTMLInputElement>(null)
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  let fileRef = useRef<HTMLInputElement>(null)
+
+  let handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let file = e.target.files?.[0]
     if (file) setPhoto(URL.createObjectURL(file))
   }
 
-  const addSkill = () => {
-    const s = skillInput.trim()
-    if (s && !skills.includes(s)) setSkills([...skills, s])
+  let addSkill = () => {
+    let s = skillInput.trim()
+    if (!s) return toast.error("Skill cannot be empty!")
+    if (skills.includes(s)) return toast.error("Skill already added!")
+    setSkills([...skills, s])
     setSkillInput("")
   }
 
-  const addExperience = () => {
-    if (!newExp.title || !newExp.company) return
+  let addExperience = () => {
+    if (!newExp.jobTitle.trim()) return toast.error("Job title is Required!")
+    if (!newExp.companyName.trim())
+      return toast.error("Company name is Required!")
+    if (!newExp.startDate.trim()) return toast.error("Start date is Required!")
     setExperiences([...experiences, {...newExp, id: Date.now()}])
     setNewExp({
-      title: "",
-      company: "",
+      jobTitle: "",
+      companyName: "",
       startDate: "",
       endDate: "",
       current: false,
@@ -107,14 +94,38 @@ export default function ProfileSetupPage() {
     setShowExpForm(false)
   }
 
-  const addEducation = () => {
-    if (!newEdu.degree || !newEdu.institution) return
+  let addEducation = () => {
+    if (!newEdu.degreeName.trim()) return toast.error("Degree is Required!")
+    if (!newEdu.institution.trim())
+      return toast.error("Institution is Required!")
+    if (!newEdu.year.trim()) return toast.error("Year is Required!")
     setEducations([...educations, {...newEdu, id: Date.now()}])
-    setNewEdu({degree: "", institution: "", year: ""})
+    setNewEdu({degreeName: "", institution: "", year: ""})
     setShowEduForm(false)
   }
 
-  const inputCls =
+  let handleSubmit = async () => {
+    if (role === "jobSeeker") {
+      if (!jobSeekerForm.fullName.trim())
+        return toast.error("Full name is Required!")
+      if (!jobSeekerForm.jobTitle.trim())
+        return toast.error("Job title is Required!")
+      if (!jobSeekerForm.location.trim())
+        return toast.error("Location is Required!")
+      if (!jobSeekerForm.shortBio.trim())
+        return toast.error("Short bio is Required!")
+      if (skills.length === 0) return toast.error("Add at least one skill!")
+    } else {
+      if (!employerForm.fullName.trim())
+        return toast.error("Full name is Required!")
+      if (!employerForm.location.trim())
+        return toast.error("Location is Required!")
+      if (!employerForm.companyDescription.trim())
+        return toast.error("Company description is Required!")
+    }
+  }
+
+  let inputCls =
     "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
 
   return (
@@ -189,7 +200,14 @@ export default function ProfileSetupPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Full Name"
+                    value={jobSeekerForm.fullName}
+                    onChange={(e) =>
+                      setJobSeekerForm({
+                        ...jobSeekerForm,
+                        fullName: e.target.value,
+                      })
+                    }
                     className={inputCls}
                   />
                 </div>
@@ -199,7 +217,14 @@ export default function ProfileSetupPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Frontend Developer"
+                    placeholder="Job Title"
+                    value={jobSeekerForm.jobTitle}
+                    onChange={(e) =>
+                      setJobSeekerForm({
+                        ...jobSeekerForm,
+                        jobTitle: e.target.value,
+                      })
+                    }
                     className={inputCls}
                   />
                 </div>
@@ -212,7 +237,14 @@ export default function ProfileSetupPage() {
                   <MapPin size={14} className="text-gray-400 shrink-0" />
                   <input
                     type="text"
-                    placeholder="San Francisco, CA"
+                    placeholder="Location"
+                    value={jobSeekerForm.location}
+                    onChange={(e) =>
+                      setJobSeekerForm({
+                        ...jobSeekerForm,
+                        location: e.target.value,
+                      })
+                    }
                     className="flex-1 text-sm outline-none bg-transparent"
                   />
                 </div>
@@ -224,6 +256,13 @@ export default function ProfileSetupPage() {
                 <textarea
                   placeholder="Briefly describe your professional background..."
                   rows={4}
+                  value={jobSeekerForm.shortBio}
+                  onChange={(e) =>
+                    setJobSeekerForm({
+                      ...jobSeekerForm,
+                      shortBio: e.target.value,
+                    })
+                  }
                   className={inputCls + " resize-none"}
                 />
               </div>
@@ -233,11 +272,18 @@ export default function ProfileSetupPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-gray-700 block mb-1">
-                    Company Name
+                    Full Name
                   </label>
                   <input
                     type="text"
-                    placeholder="Acme Inc."
+                    placeholder="Full Name"
+                    value={employerForm.fullName}
+                    onChange={(e) =>
+                      setEmployerForm({
+                        ...employerForm,
+                        fullName: e.target.value,
+                      })
+                    }
                     className={inputCls}
                   />
                 </div>
@@ -246,6 +292,13 @@ export default function ProfileSetupPage() {
                     Industry
                   </label>
                   <select
+                    value={employerForm.industry}
+                    onChange={(e) =>
+                      setEmployerForm({
+                        ...employerForm,
+                        industry: e.target.value,
+                      })
+                    }
                     className={inputCls + " cursor-pointer text-gray-600"}
                   >
                     {industries.map((i) => (
@@ -258,6 +311,13 @@ export default function ProfileSetupPage() {
                     Company Size
                   </label>
                   <select
+                    value={employerForm.companySize}
+                    onChange={(e) =>
+                      setEmployerForm({
+                        ...employerForm,
+                        companySize: e.target.value,
+                      })
+                    }
                     className={inputCls + " cursor-pointer text-gray-600"}
                   >
                     {companySizes.map((s) => (
@@ -273,7 +333,14 @@ export default function ProfileSetupPage() {
                     <MapPin size={14} className="text-gray-400 shrink-0" />
                     <input
                       type="text"
-                      placeholder="New York, NY"
+                      placeholder="Location"
+                      value={employerForm.location}
+                      onChange={(e) =>
+                        setEmployerForm({
+                          ...employerForm,
+                          location: e.target.value,
+                        })
+                      }
                       className="flex-1 text-sm outline-none bg-transparent"
                     />
                   </div>
@@ -288,6 +355,13 @@ export default function ProfileSetupPage() {
                   <input
                     type="text"
                     placeholder="https://yourcompany.com"
+                    value={employerForm.website}
+                    onChange={(e) =>
+                      setEmployerForm({
+                        ...employerForm,
+                        website: e.target.value,
+                      })
+                    }
                     className="flex-1 text-sm outline-none bg-transparent"
                   />
                 </div>
@@ -299,6 +373,13 @@ export default function ProfileSetupPage() {
                 <textarea
                   placeholder="Briefly describe your company, culture and what you do..."
                   rows={4}
+                  value={employerForm.companyDescription}
+                  onChange={(e) =>
+                    setEmployerForm({
+                      ...employerForm,
+                      companyDescription: e.target.value,
+                    })
+                  }
                   className={inputCls + " resize-none"}
                 />
               </div>
@@ -365,10 +446,10 @@ export default function ProfileSetupPage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="Frontend Engineer"
-                        value={newExp.title}
+                        placeholder="Job Title"
+                        value={newExp.jobTitle}
                         onChange={(e) =>
-                          setNewExp({...newExp, title: e.target.value})
+                          setNewExp({...newExp, jobTitle: e.target.value})
                         }
                         className={inputCls}
                       />
@@ -379,10 +460,10 @@ export default function ProfileSetupPage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="TechFlow"
-                        value={newExp.company}
+                        placeholder="Company Name"
+                        value={newExp.companyName}
                         onChange={(e) =>
-                          setNewExp({...newExp, company: e.target.value})
+                          setNewExp({...newExp, companyName: e.target.value})
                         }
                         className={inputCls}
                       />
@@ -393,7 +474,7 @@ export default function ProfileSetupPage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="Jan 2021"
+                        placeholder="Start Date"
                         value={newExp.startDate}
                         onChange={(e) =>
                           setNewExp({...newExp, startDate: e.target.value})
@@ -407,7 +488,7 @@ export default function ProfileSetupPage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="Present"
+                        placeholder="End Date"
                         disabled={newExp.current}
                         value={newExp.current ? "Present" : newExp.endDate}
                         onChange={(e) =>
@@ -466,10 +547,10 @@ export default function ProfileSetupPage() {
                   >
                     <div>
                       <p className="text-sm font-semibold text-gray-900">
-                        {exp.title}
+                        {exp.jobTitle}
                       </p>
                       <p className="text-xs text-[#2d4fd6] font-medium mt-0.5">
-                        {exp.company}
+                        {exp.companyName}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {exp.startDate} —{" "}
@@ -518,9 +599,9 @@ export default function ProfileSetupPage() {
                       <input
                         type="text"
                         placeholder="B.S. Computer Science"
-                        value={newEdu.degree}
+                        value={newEdu.degreeName}
                         onChange={(e) =>
-                          setNewEdu({...newEdu, degree: e.target.value})
+                          setNewEdu({...newEdu, degreeName: e.target.value})
                         }
                         className={inputCls}
                       />
@@ -531,7 +612,7 @@ export default function ProfileSetupPage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="Stanford University"
+                        placeholder="Institution Name"
                         value={newEdu.institution}
                         onChange={(e) =>
                           setNewEdu({...newEdu, institution: e.target.value})
@@ -545,7 +626,7 @@ export default function ProfileSetupPage() {
                       </label>
                       <input
                         type="text"
-                        placeholder="2020"
+                        placeholder="Year"
                         value={newEdu.year}
                         onChange={(e) =>
                           setNewEdu({...newEdu, year: e.target.value})
@@ -578,7 +659,7 @@ export default function ProfileSetupPage() {
                   >
                     <div>
                       <p className="text-sm font-semibold text-gray-900">
-                        {edu.degree}
+                        {edu.degreeName}
                       </p>
                       <p className="text-xs text-[#2d4fd6] font-medium mt-0.5">
                         {edu.institution}
@@ -599,15 +680,13 @@ export default function ProfileSetupPage() {
                 ))}
               </div>
             </div>
-
-            <button className="w-full flex items-center justify-center gap-2 bg-[#2d4fd6] hover:bg-[#2440b8] text-white font-medium py-3 rounded-xl cursor-pointer transition-colors">
-              <Sparkles size={16} />
-              Generate CV with AI
-            </button>
           </>
         )}
 
-        <button className="w-full bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl text-sm cursor-pointer hover:bg-gray-50 transition-colors mb-4">
+        <button
+          onClick={handleSubmit}
+          className="w-full bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl text-sm cursor-pointer hover:bg-gray-50 transition-colors mb-4"
+        >
           {role === "employer" ? "Save & Continue" : "Save Progress"}
         </button>
       </div>
