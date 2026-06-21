@@ -4,6 +4,7 @@ import {useState, useRef} from "react"
 import {MapPin, Plus, X, Trash2, Globe} from "lucide-react"
 import {useSession} from "next-auth/react"
 import toast from "react-hot-toast"
+import {useRouter} from "next/navigation"
 
 let industries = [
   "Software Development",
@@ -20,8 +21,9 @@ let industries = [
 let companySizes = ["1-10", "10-50", "50-200", "200-500", "500-1000", "1000+"]
 
 export default function ProfileSetupPage() {
-  let {data: session} = useSession()
+  let {data: session, update} = useSession()
   let role = session?.user?.role as "jobSeeker" | "employer"
+  let router = useRouter()
 
   let [photo, setPhoto] = useState<string | null>(null)
   let [skills, setSkills] = useState<string[]>([])
@@ -122,6 +124,35 @@ export default function ProfileSetupPage() {
         return toast.error("Location is Required!")
       if (!employerForm.companyDescription.trim())
         return toast.error("Company description is Required!")
+    }
+
+    try {
+      let res = await fetch("/api/profile", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(
+          role === "jobSeeker"
+            ? {
+                ...jobSeekerForm,
+                skills,
+                experience: experiences,
+                education: educations,
+                photo,
+              }
+            : {...employerForm, photo},
+        ),
+      })
+      let data = await res.json()
+      if (!res.ok) return toast.error(data?.message || "Something went wrong")
+      await update({isProfileComplete: true})
+      toast.success("Profile saved!")
+      if (role === "employer") {
+        router.push("/employer-dashboard")
+      } else {
+        router.push("/job-seeker-dashboard")
+      }
+    } catch (e) {
+      toast.error((e as Error).message)
     }
   }
 
