@@ -1,13 +1,14 @@
 "use client"
 
-import {useState, useRef, useEffect} from "react"
+import {useState, useRef} from "react"
 import dynamic from "next/dynamic"
 import {MapPin, Briefcase, FileText, Info, Send} from "lucide-react"
+import toast from "react-hot-toast"
 
-const ReactQuill = dynamic(() => import("react-quill-new"), {ssr: false})
+let ReactQuill = dynamic(() => import("react-quill-new"), {ssr: false})
 import "react-quill-new/dist/quill.snow.css"
 
-const categories = [
+let categories = [
   "Technology",
   "Marketing",
   "Design",
@@ -17,25 +18,21 @@ const categories = [
   "Sales",
   "Engineering",
 ]
-const currencies = ["USD", "PKR", "EUR", "GBP", "AED"]
-const experienceLevels = ["Entry", "Mid", "Senior", "Lead", "Manager"]
-const jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
+let currencies = ["USD", "PKR", "EUR", "GBP", "AED"]
+let experienceLevels = ["Entry", "Mid", "Senior", "Lead", "Manager"]
+let jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
 
 export default function PostJobPage() {
-  const [selectedType, setSelectedType] = useState("Full Time")
-  const [skills, setSkills] = useState<string[]>([
-    "React",
-    "TypeScript",
-    "Tailwind",
-  ])
-  const [skillInput, setSkillInput] = useState("")
-  const [description, setDescription] = useState("")
-  const [form, setForm] = useState({
+  let [selectedType, setSelectedType] = useState("Full Time")
+  let [skills, setSkills] = useState<string[]>([])
+  let [skillInput, setSkillInput] = useState("")
+  let [description, setDescription] = useState("")
+  let [form, setForm] = useState({
     title: "",
     category: "Technology",
     location: "",
-    salaryMin: "50,000",
-    salaryMax: "120,000",
+    salaryMin: "",
+    salaryMax: "",
     currency: "USD",
     experience: "Entry",
     deadline: "",
@@ -43,9 +40,9 @@ export default function PostJobPage() {
     benefits: "",
   })
 
-  const skillInputRef = useRef<HTMLInputElement>(null)
+  let skillInputRef = useRef<HTMLInputElement>(null)
 
-  const handleChange = (
+  let handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
@@ -53,7 +50,7 @@ export default function PostJobPage() {
     setForm({...form, [e.target.name]: e.target.value})
   }
 
-  const addSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  let addSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault()
       if (!skills.includes(skillInput.trim())) {
@@ -63,15 +60,68 @@ export default function PostJobPage() {
     }
   }
 
-  const removeSkill = (skill: string) => {
+  let removeSkill = (skill: string) => {
     setSkills(skills.filter((s) => s !== skill))
   }
 
-  const handlePublish = () => {
-    console.log({...form, jobType: selectedType, skills, description})
+  let validate = () => {
+    if (!form.title.trim()) {
+      toast.error("Job title required")
+      return false
+    }
+    if (!form.location.trim()) {
+      toast.error("Location required")
+      return false
+    }
+    if (!form.salaryMin) {
+      toast.error("Minimum salary required")
+      return false
+    }
+    if (!form.salaryMax) {
+      toast.error("Maximum salary required")
+      return false
+    }
+    if (Number(form.salaryMin) >= Number(form.salaryMax)) {
+      toast.error("Max salary must be greater than min")
+      return false
+    }
+    if (!form.deadline) {
+      toast.error("Application deadline required")
+      return false
+    }
+    if (skills.length === 0) {
+      toast.error("Add at least one skill")
+      return false
+    }
+    if (!description.trim() || description === "<p><br></p>") {
+      toast.error("Job description required")
+      return false
+    }
+    if (!description.replace(/<(.|\n)*?>/g, "").trim()) {
+      toast.error("Job description required")
+      return false
+    }
+    if (!form.requirements.trim()) {
+      toast.error("Requirements required")
+      return false
+    }
+    return true
   }
 
-  const quillModules = {
+  let handlePublish = async () => {
+    if (!validate()) return
+    let payload = {
+      ...form,
+      jobType: selectedType,
+      skills,
+      description,
+      salaryMin: Number(form.salaryMin),
+      salaryMax: Number(form.salaryMax),
+    }
+    console.log(payload)
+  }
+
+  let quillModules = {
     toolbar: [["bold", "italic"], [{list: "bullet"}], ["link"]],
   }
 
@@ -98,7 +148,6 @@ export default function PostJobPage() {
                 Basic Information
               </h2>
             </div>
-
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
@@ -112,7 +161,6 @@ export default function PostJobPage() {
                   className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#2d4fd6] transition"
                 />
               </div>
-
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Category
@@ -128,7 +176,6 @@ export default function PostJobPage() {
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Job Type
@@ -138,11 +185,7 @@ export default function PostJobPage() {
                     <button
                       key={type}
                       onClick={() => setSelectedType(type)}
-                      className={`px-4 py-1.5 rounded-full text-sm border transition cursor-pointer ${
-                        selectedType === type
-                          ? "bg-[#2d4fd6] text-white border-[#2d4fd6]"
-                          : "bg-white text-gray-600 border-gray-200 hover:border-[#2d4fd6]"
-                      }`}
+                      className={`px-4 py-1.5 rounded-full text-sm border transition cursor-pointer ${selectedType === type ? "bg-[#2d4fd6] text-white border-[#2d4fd6]" : "bg-white text-gray-600 border-gray-200 hover:border-[#2d4fd6]"}`}
                     >
                       {type}
                     </button>
@@ -163,7 +206,6 @@ export default function PostJobPage() {
                 Location & Salary
               </h2>
             </div>
-
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
@@ -183,7 +225,6 @@ export default function PostJobPage() {
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-sm text-gray-600 mb-1 block">
@@ -193,6 +234,8 @@ export default function PostJobPage() {
                     name="salaryMin"
                     value={form.salaryMin}
                     onChange={handleChange}
+                    placeholder="e.g. 50000"
+                    type="number"
                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#2d4fd6] transition"
                   />
                 </div>
@@ -204,6 +247,8 @@ export default function PostJobPage() {
                     name="salaryMax"
                     value={form.salaryMax}
                     onChange={handleChange}
+                    placeholder="e.g. 120000"
+                    type="number"
                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#2d4fd6] transition"
                   />
                 </div>
@@ -237,7 +282,6 @@ export default function PostJobPage() {
                 Job Details
               </h2>
             </div>
-
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -268,7 +312,6 @@ export default function PostJobPage() {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Required Skills
@@ -296,7 +339,7 @@ export default function PostJobPage() {
                     value={skillInput}
                     onChange={(e) => setSkillInput(e.target.value)}
                     onKeyDown={addSkill}
-                    placeholder="Add skill..."
+                    placeholder="Type skill + Enter"
                     className="outline-none text-sm flex-1 min-w-[100px] bg-transparent"
                   />
                 </div>
@@ -315,7 +358,6 @@ export default function PostJobPage() {
                 Full Description
               </h2>
             </div>
-
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
@@ -332,7 +374,6 @@ export default function PostJobPage() {
                   />
                 </div>
               </div>
-
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Requirements
@@ -346,7 +387,6 @@ export default function PostJobPage() {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#2d4fd6] transition resize-none"
                 />
               </div>
-
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">
                   Benefits
