@@ -10,7 +10,7 @@ export default function HeroSection() {
 
   let handlePostJob = () => {
     if (!session) return router.push("/auth/login")
-    if (role === "employer") return router.push("/post-job")
+    if (role === "employer") return router.push("employer-dashboard/post-job")
     router.push("/")
   }
 

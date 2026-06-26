@@ -4,6 +4,7 @@ import {useState, useRef} from "react"
 import dynamic from "next/dynamic"
 import {MapPin, Briefcase, FileText, Info, Send} from "lucide-react"
 import toast from "react-hot-toast"
+import {useRouter} from "next/navigation"
 
 let ReactQuill = dynamic(() => import("react-quill-new"), {ssr: false})
 import "react-quill-new/dist/quill.snow.css"
@@ -23,6 +24,7 @@ let experienceLevels = ["Entry", "Mid", "Senior", "Lead", "Manager"]
 let jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
 
 export default function PostJobPage() {
+  let router = useRouter()
   let [selectedType, setSelectedType] = useState("Full Time")
   let [skills, setSkills] = useState<string[]>([])
   let [skillInput, setSkillInput] = useState("")
@@ -110,15 +112,30 @@ export default function PostJobPage() {
 
   let handlePublish = async () => {
     if (!validate()) return
-    let payload = {
-      ...form,
-      jobType: selectedType,
-      skills,
-      description,
-      salaryMin: Number(form.salaryMin),
-      salaryMax: Number(form.salaryMax),
+    try {
+      let payload = {
+        ...form,
+        jobType: selectedType,
+        skills,
+        description,
+        salaryMin: Number(form.salaryMin),
+        salaryMax: Number(form.salaryMax),
+      }
+      let res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload),
+      })
+      let data = await res.json()
+      if (!res.ok) {
+        toast.error(data?.message || "Failed to post job")
+        return
+      }
+      toast.success(data?.message || "Job posted successfully")
+      router.push("/employer-dashboard")
+    } catch {
+      toast.error("Something went wrong")
     }
-    console.log(payload)
   }
 
   let quillModules = {
