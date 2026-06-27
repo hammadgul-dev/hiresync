@@ -91,3 +91,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: "Something went wrong"}, {status: 500})
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    await dbConnect()
+    let {searchParams} = new URL(req.url)
+    let page = Number(searchParams.get("page") || 1)
+    let limit = 10
+    let skip = (page - 1) * limit
+    let search = searchParams.get("search") || ""
+    let location = searchParams.get("location") || ""
+    let jobType = searchParams.get("jobType") || ""
+    let category = searchParams.get("category") || ""
+    let experience = searchParams.get("experience") || ""
+    let filter: any = {isActive: true}
+
+    if (search) filter.title = {$regex: search, $options: "i"}
+    if (location) filter.location = {$regex: location, $options: "i"}
+    if (jobType) filter.jobType = jobType
+    if (category) filter.category = category
+    if (experience) filter.experience = experience
+
+    let [jobs, total] = await Promise.all([
+      jobModel.find(filter).sort({createdAt: -1}).skip(skip).limit(limit),
+      jobModel.countDocuments(filter),
+    ])
+    return NextResponse.json({jobs, total}, {status: 200})
+  } catch {
+    return NextResponse.json({message: "Something went wrong"}, {status: 500})
+  }
+}
