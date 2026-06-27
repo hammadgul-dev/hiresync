@@ -1,78 +1,37 @@
 "use client"
 
 import {useState} from "react"
-import {
-  Search,
-  MapPin,
-  Bookmark,
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react"
+import {Search, MapPin} from "lucide-react"
+import JobCard from "@/components/JobCard"
+import Pagination from "@/components/Pagination"
 
-const jobs = [
-  {
-    id: 1,
-    title: "Senior Software Engineer",
-    company: "CloudScale Tech",
-    location: "San Francisco, CA (Remote)",
-    tags: ["Full Time", "Remote"],
-    salary: "$140k - $180k",
-    posted: "Posted 2 days ago",
-    logo: "CS",
-  },
-  {
-    id: 2,
-    title: "Product Designer",
-    company: "Creative Pulse",
-    location: "New York, NY",
-    tags: ["Full Time"],
-    salary: "$110k - $150k",
-    posted: "Posted 5 hours ago",
-    logo: "CP",
-  },
-  {
-    id: 3,
-    title: "Marketing Manager",
-    company: "GrowthLabs",
-    location: "Austin, TX (Hybrid)",
-    tags: ["Part Time"],
-    salary: "$90k - $120k",
-    posted: "Posted 1 day ago",
-    logo: "GL",
-  },
-  {
-    id: 4,
-    title: "Data Analyst",
-    company: "RetailGenius",
-    location: "Chicago, IL",
-    tags: ["Full Time"],
-    salary: "$100k - $140k",
-    posted: "Posted 3 days ago",
-    logo: "RG",
-  },
+let jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
+let experienceLevels = ["Entry Level", "Mid Level", "Senior Level"]
+let categories = [
+  "Technology",
+  "Marketing",
+  "Design",
+  "Finance",
+  "Healthcare",
+  "Education",
+  "Sales",
+  "Engineering",
 ]
-
-const jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
-const experienceLevels = ["Entry Level", "Mid Level", "Senior Level"]
-const categories = ["Technology", "Marketing", "Design"]
-const sortOptions = ["Most Recent", "Most Relevant", "Highest Salary"]
-const totalPages = 12
+let sortOptions = ["Most Recent", "Most Relevant", "Highest Salary"]
 
 export default function FindJobsPage() {
-  const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([
-    "Full Time",
-    "Remote",
-  ])
-  const [selectedExp, setSelectedExp] = useState<string[]>([])
-  const [selectedCats, setSelectedCats] = useState<string[]>(["Technology"])
-  const [sortBy, setSortBy] = useState("Most Recent")
-  const [searchTitle, setSearchTitle] = useState("")
-  const [searchLocation, setSearchLocation] = useState("")
-  const [saved, setSaved] = useState<number[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
+  let [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([])
+  let [selectedExp, setSelectedExp] = useState<string[]>([])
+  let [selectedCats, setSelectedCats] = useState<string[]>([])
+  let [sortBy, setSortBy] = useState("Most Recent")
+  let [searchTitle, setSearchTitle] = useState("")
+  let [searchLocation, setSearchLocation] = useState("")
+  let [currentPage, setCurrentPage] = useState(1)
+  let [jobs, setJobs] = useState<any[]>([])
+  let [totalJobs, setTotalJobs] = useState(0)
+  let totalPages = Math.ceil(totalJobs / 10)
 
-  const toggle = (
+  let toggle = (
     list: string[],
     setList: (v: string[]) => void,
     val: string,
@@ -80,29 +39,10 @@ export default function FindJobsPage() {
     setList(list.includes(val) ? list.filter((i) => i !== val) : [...list, val])
   }
 
-  const toggleSave = (id: number) => {
-    setSaved((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
-    )
-  }
-
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = []
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i)
-    } else {
-      pages.push(1)
-      if (currentPage > 3) pages.push("...")
-      for (
-        let i = Math.max(2, currentPage - 1);
-        i <= Math.min(totalPages - 1, currentPage + 1);
-        i++
-      )
-        pages.push(i)
-      if (currentPage < totalPages - 2) pages.push("...")
-      pages.push(totalPages)
-    }
-    return pages
+  let resetFilters = () => {
+    setSelectedJobTypes([])
+    setSelectedExp([])
+    setSelectedCats([])
   }
 
   return (
@@ -140,7 +80,10 @@ export default function FindJobsPage() {
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-semibold text-gray-800">Filters</h2>
-                <button className="text-xs text-[#2d4fd6] hover:underline cursor-pointer">
+                <button
+                  onClick={resetFilters}
+                  className="text-xs text-[#2d4fd6] hover:underline cursor-pointer"
+                >
                   Reset
                 </button>
               </div>
@@ -223,7 +166,7 @@ export default function FindJobsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
-                  1,240 Jobs Found
+                  {totalJobs.toLocaleString()} Jobs Found
                 </h1>
                 <p className="text-sm text-gray-500">
                   Matching your current search criteria
@@ -246,107 +189,22 @@ export default function FindJobsPage() {
             </div>
 
             <div className="flex flex-col gap-4">
-              {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="bg-white rounded-2xl shadow-sm p-4 sm:p-5 flex items-start gap-3 sm:gap-4 hover:shadow-md transition"
-                >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#eef1fb] flex items-center justify-center text-[#2d4fd6] font-bold text-xs sm:text-sm shrink-0">
-                    {job.logo}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">
-                        {job.title}
-                      </h3>
-                      <button
-                        onClick={() => toggleSave(job.id)}
-                        className="cursor-pointer text-gray-400 hover:text-[#2d4fd6] transition shrink-0 mt-0.5"
-                      >
-                        <Bookmark
-                          size={17}
-                          fill={saved.includes(job.id) ? "#2d4fd6" : "none"}
-                          stroke={
-                            saved.includes(job.id) ? "#2d4fd6" : "currentColor"
-                          }
-                        />
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-gray-500 mt-1">
-                      <Building2 size={12} className="shrink-0" />
-                      <span>{job.company}</span>
-                      <span className="mx-0.5">·</span>
-                      <MapPin size={12} className="shrink-0" />
-                      <span className="truncate">{job.location}</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                      {job.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs bg-[#eef1fb] text-[#2d4fd6] px-2.5 py-0.5 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full">
-                        {job.salary}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <span className="text-xs text-gray-400">
-                        {job.posted}
-                      </span>
-                      <button className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white text-xs px-4 py-1.5 rounded-lg cursor-pointer transition">
-                        Apply Now
-                      </button>
-                    </div>
-                  </div>
+              {jobs.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-sm p-10 text-center text-gray-400 text-sm">
+                  No jobs found
                 </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-center gap-1.5 mt-8">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-[#2d4fd6] hover:text-[#2d4fd6] disabled:opacity-40 cursor-pointer transition"
-              >
-                <ChevronLeft size={15} />
-              </button>
-
-              {getPageNumbers().map((page, i) =>
-                page === "..." ? (
-                  <span
-                    key={i}
-                    className="w-8 h-8 flex items-center justify-center text-sm text-gray-400"
-                  >
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(page as number)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm cursor-pointer transition border ${
-                      currentPage === page
-                        ? "bg-[#2d4fd6] text-white border-[#2d4fd6]"
-                        : "bg-white text-gray-600 border-gray-200 hover:border-[#2d4fd6] hover:text-[#2d4fd6]"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ),
+              ) : (
+                jobs.map((job) => <JobCard key={job._id} job={job} />)
               )}
-
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-[#2d4fd6] hover:text-[#2d4fd6] disabled:opacity-40 cursor-pointer transition"
-              >
-                <ChevronRight size={15} />
-              </button>
             </div>
+
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </div>
         </div>
       </main>
