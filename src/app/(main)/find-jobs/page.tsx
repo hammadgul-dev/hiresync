@@ -1,9 +1,9 @@
 "use client"
 
-import {useState} from "react"
 import {Search, MapPin} from "lucide-react"
 import JobCard from "@/components/JobCard"
 import Pagination from "@/components/Pagination"
+import {useState, useEffect} from "react"
 
 let jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
 let experienceLevels = ["Entry Level", "Mid Level", "Senior Level"]
@@ -29,7 +29,36 @@ export default function FindJobsPage() {
   let [currentPage, setCurrentPage] = useState(1)
   let [jobs, setJobs] = useState<any[]>([])
   let [totalJobs, setTotalJobs] = useState(0)
-  let totalPages = Math.ceil(totalJobs / 10)
+  let totalPages = Math.ceil(totalJobs / 4)
+
+  useEffect(() => {
+    fetchJobs()
+  }, [currentPage, selectedJobTypes, selectedExp, selectedCats])
+
+  let fetchJobs = async () => {
+    try {
+      let params = new URLSearchParams()
+      if (searchTitle) params.set("search", searchTitle)
+      if (searchLocation) params.set("location", searchLocation)
+      if (selectedJobTypes.length === 1)
+        params.set("jobType", selectedJobTypes[0])
+      if (selectedCats.length === 1) params.set("category", selectedCats[0])
+      if (selectedExp.length === 1) params.set("experience", selectedExp[0])
+      params.set("page", String(currentPage))
+
+      let res = await fetch(`/api/jobs?${params.toString()}`)
+      let data = await res.json()
+      setJobs(data.jobs)
+      setTotalJobs(data.total)
+    } catch {
+      setJobs([])
+    }
+  }
+
+  let handleSearch = () => {
+    setCurrentPage(1)
+    fetchJobs()
+  }
 
   let toggle = (
     list: string[],
@@ -58,6 +87,7 @@ export default function FindJobsPage() {
               value={searchTitle}
               onChange={(e) => setSearchTitle(e.target.value)}
               placeholder="Job title, keywords, or company"
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#2d4fd6] transition"
             />
           </div>
@@ -67,10 +97,14 @@ export default function FindJobsPage() {
               value={searchLocation}
               onChange={(e) => setSearchLocation(e.target.value)}
               placeholder="City, state, or remote"
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#2d4fd6] transition"
             />
           </div>
-          <button className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white px-6 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition whitespace-nowrap">
+          <button
+            onClick={handleSearch}
+            className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white px-6 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition whitespace-nowrap"
+          >
             Search Jobs
           </button>
         </div>

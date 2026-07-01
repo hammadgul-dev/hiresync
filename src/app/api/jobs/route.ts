@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
     await dbConnect()
     let {searchParams} = new URL(req.url)
     let page = Number(searchParams.get("page") || 1)
-    let limit = 10
+    let limit = 4
     let skip = (page - 1) * limit
     let search = searchParams.get("search") || ""
     let location = searchParams.get("location") || ""
