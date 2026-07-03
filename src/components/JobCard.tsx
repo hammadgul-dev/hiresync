@@ -1,6 +1,7 @@
 "use client"
 
 import {Building2, MapPin, Bookmark} from "lucide-react"
+import {useRouter} from "next/navigation"
 
 interface Job {
   _id: string
@@ -15,6 +16,7 @@ interface Job {
 }
 
 export default function JobCard({job}: {job: Job}) {
+  let router = useRouter()
   let initials = job.companyName
     .split(" ")
     .map((w: string) => w[0])
@@ -60,7 +62,10 @@ export default function JobCard({job}: {job: Job}) {
         </div>
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-gray-400">{postedLabel}</span>
-          <button className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white text-xs px-4 py-1.5 rounded-lg cursor-pointer transition">
+          <button
+            onClick={() => router.push(`/find-jobs/${job._id}`)}
+            className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white text-xs px-4 py-1.5 rounded-lg cursor-pointer transition"
+          >
             Apply Now
           </button>
         </div>
