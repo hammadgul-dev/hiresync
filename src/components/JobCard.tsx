@@ -1,6 +1,6 @@
 "use client"
 
-import {Building2, MapPin, Bookmark} from "lucide-react"
+import {Building2, MapPin} from "lucide-react"
 import {useRouter} from "next/navigation"
 
 interface Job {
@@ -40,9 +40,6 @@ export default function JobCard({job}: {job: Job}) {
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">
             {job.title}
           </h3>
-          <button className="cursor-pointer text-gray-400 hover:text-[#2d4fd6] transition shrink-0 mt-0.5">
-            <Bookmark size={17} />
-          </button>
         </div>
         <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-gray-500 mt-1">
           <Building2 size={12} className="shrink-0" />
