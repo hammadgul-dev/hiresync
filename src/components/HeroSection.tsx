@@ -8,9 +8,10 @@ export default function HeroSection() {
   let router = useRouter()
   let role = (session?.user as any)?.role
 
-  let handlePostJob = () => {
+  let handleDashboard = () => {
     if (!session) return router.push("/auth/login")
-    if (role === "employer") return router.push("employer-dashboard/post-job")
+    if (role === "employer") return router.push("/employer-dashboard")
+    if (role === "jobSeeker") return router.push("/job-seeker-dashboard")
     router.push("/")
   }
 
@@ -33,10 +34,10 @@ export default function HeroSection() {
             Find Jobs
           </button>
           <button
-            onClick={handlePostJob}
+            onClick={handleDashboard}
             className="border-2 border-slate-300 hover:border-slate-400 transition-colors text-slate-800 font-semibold px-7 py-2.5 rounded-lg text-sm cursor-pointer"
           >
-            Post a Job
+            Dashboard
           </button>
         </div>
       </div>
