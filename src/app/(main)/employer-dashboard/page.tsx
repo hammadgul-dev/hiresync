@@ -3,6 +3,7 @@ import {useState, useEffect} from "react"
 import {Briefcase, CheckCircle, XCircle, Pencil, Trash2} from "lucide-react"
 import Link from "next/link"
 import toast from "react-hot-toast"
+import {useRouter} from "next/navigation"
 
 let applicants = [
   {
@@ -41,6 +42,7 @@ export default function EmployerDashboard() {
   let [stats, setStats] = useState({total: 0, active: 0, closed: 0})
   let [jobs, setJobs] = useState<any[]>([])
   let [loading, setLoading] = useState(true)
+  let router = useRouter()
 
   let fetchJobs = async () => {
     try {
@@ -173,7 +175,14 @@ export default function EmployerDashboard() {
                         </td>
                         <td className="py-3">
                           <div className="flex items-center gap-2">
-                            <button className="p-1 hover:text-[#2d4fd6] text-gray-400 transition-colors cursor-pointer">
+                            <button
+                              onClick={() =>
+                                router.push(
+                                  `/employer-dashboard/post-job?id=${job._id}`,
+                                )
+                              }
+                              className="p-1 hover:text-[#2d4fd6] text-gray-400 transition-colors cursor-pointer"
+                            >
                               <Pencil className="w-4 h-4" />
                             </button>
                             <button
