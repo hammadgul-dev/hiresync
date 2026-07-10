@@ -1,58 +1,10 @@
+"use client"
+import {useState, useEffect} from "react"
 import {Briefcase, CheckCircle, XCircle, Pencil, Trash2} from "lucide-react"
 import Link from "next/link"
+import toast from "react-hot-toast"
 
-const stats = [
-  {label: "Total Jobs", value: 42, icon: Briefcase},
-  {label: "Active Jobs", value: 12, icon: CheckCircle},
-  {label: "Closed Jobs", value: 30, icon: XCircle},
-]
-
-const jobs = [
-  {
-    title: "Senior Frontend Engineer",
-    dept: "Engineering",
-    type: "Full-time",
-    applications: 124,
-    status: "ACTIVE",
-  },
-  {
-    title: "Product Designer",
-    dept: "Design",
-    type: "Remote",
-    applications: 86,
-    status: "ACTIVE",
-  },
-  {
-    title: "Marketing Lead",
-    dept: "Marketing",
-    type: "Hybrid",
-    applications: 32,
-    status: "CLOSED",
-  },
-  {
-    title: "Backend Developer",
-    dept: "Engineering",
-    type: "Remote",
-    applications: 210,
-    status: "ACTIVE",
-  },
-  {
-    title: "DevOps Engineer",
-    dept: "Engineering",
-    type: "Full-time",
-    applications: 54,
-    status: "ACTIVE",
-  },
-  {
-    title: "UI/UX Designer",
-    dept: "Design",
-    type: "Remote",
-    applications: 67,
-    status: "CLOSED",
-  },
-]
-
-const applicants = [
+let applicants = [
   {
     name: "Alex Rivero",
     role: "Product Designer",
@@ -85,12 +37,55 @@ const applicants = [
   },
 ]
 
-const statusColors: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-700",
-  CLOSED: "bg-gray-100 text-gray-500",
-}
-
 export default function EmployerDashboard() {
+  let [stats, setStats] = useState({total: 0, active: 0, closed: 0})
+  let [jobs, setJobs] = useState<any[]>([])
+  let [loading, setLoading] = useState(true)
+
+  let fetchJobs = async () => {
+    try {
+      let res = await fetch("/api/employer")
+      let data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      setStats(data.stats)
+      setJobs(data.jobs)
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load jobs")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchJobs()
+  }, [])
+
+  let handleDelete = async (id: string) => {
+    try {
+      let res = await fetch(`/api/employer/${id}`, {method: "DELETE"})
+      let data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      toast.success("Job deleted")
+      fetchJobs()
+    } catch (err: any) {
+      toast.error(err.message || "Delete failed")
+    }
+  }
+
+  let statCards = [
+    {label: "Total Jobs", value: stats.total, icon: Briefcase},
+    {label: "Active Jobs", value: stats.active, icon: CheckCircle},
+    {label: "Closed Jobs", value: stats.closed, icon: XCircle},
+  ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#f0f4ff] px-4 py-10">
       <div className="max-w-6xl mx-auto">
@@ -114,7 +109,7 @@ export default function EmployerDashboard() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {stats.map(({label, value, icon: Icon}) => (
+          {statCards.map(({label, value, icon: Icon}) => (
             <div
               key={label}
               className="bg-white rounded-2xl p-6 flex items-center gap-4 shadow-sm"
@@ -141,48 +136,59 @@ export default function EmployerDashboard() {
               My Posted Jobs
             </h2>
             <div className="overflow-auto flex-1">
-              <table className="w-full text-sm min-w-[500px]">
-                <thead>
-                  <tr className="text-gray-400 text-left border-b">
-                    <th className="pb-3 font-medium">Job Title</th>
-                    <th className="pb-3 font-medium">Applications</th>
-                    <th className="pb-3 font-medium">Status</th>
-                    <th className="pb-3 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {jobs.map((job) => (
-                    <tr key={job.title} className="border-b last:border-0">
-                      <td className="py-3">
-                        <p className="font-semibold text-gray-900">
-                          {job.title}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {job.dept} • {job.type}
-                        </p>
-                      </td>
-                      <td className="py-3 text-gray-700">{job.applications}</td>
-                      <td className="py-3">
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded-full ${statusColors[job.status]}`}
-                        >
-                          {job.status}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <button className="p-1 hover:text-[#2d4fd6] text-gray-400 transition-colors cursor-pointer">
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button className="p-1 hover:text-red-500 text-gray-400 transition-colors cursor-pointer">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+              {jobs.length === 0 ? (
+                <p className="text-gray-400 text-sm">No jobs posted yet.</p>
+              ) : (
+                <table className="w-full text-sm min-w-[500px]">
+                  <thead>
+                    <tr className="text-gray-400 text-left border-b">
+                      <th className="pb-3 font-medium">Job Title</th>
+                      <th className="pb-3 font-medium">Applications</th>
+                      <th className="pb-3 font-medium">Status</th>
+                      <th className="pb-3 font-medium">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {jobs.map((job) => (
+                      <tr key={job._id} className="border-b last:border-0">
+                        <td className="py-3">
+                          <p className="font-semibold text-gray-900">
+                            {job.title}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {job.category} • {job.jobType}
+                          </p>
+                        </td>
+                        <td className="py-3 text-gray-700">0</td>
+                        <td className="py-3">
+                          <span
+                            className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                              job.isActive
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-500"
+                            }`}
+                          >
+                            {job.isActive ? "ACTIVE" : "CLOSED"}
+                          </span>
+                        </td>
+                        <td className="py-3">
+                          <div className="flex items-center gap-2">
+                            <button className="p-1 hover:text-[#2d4fd6] text-gray-400 transition-colors cursor-pointer">
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(job._id)}
+                              className="p-1 hover:text-red-500 text-gray-400 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
 
