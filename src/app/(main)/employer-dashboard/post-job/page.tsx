@@ -1,10 +1,11 @@
 "use client"
 
-import {useState, useRef} from "react"
+import {useState, useRef, useEffect} from "react"
 import dynamic from "next/dynamic"
 import {MapPin, Briefcase, FileText, Info, Send} from "lucide-react"
 import toast from "react-hot-toast"
 import {useRouter} from "next/navigation"
+import {useSearchParams} from "next/navigation"
 
 let ReactQuill = dynamic(() => import("react-quill-new"), {ssr: false})
 import "react-quill-new/dist/quill.snow.css"
@@ -41,6 +42,45 @@ export default function PostJobPage() {
     requirements: "",
     benefits: "",
   })
+  let searchParams = useSearchParams()
+  let jobId = searchParams.get("id")
+  let [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!jobId) return
+    let fetchJob = async () => {
+      setLoading(true)
+      try {
+        let res = await fetch(`/api/jobs/${jobId}`)
+        let data = await res.json()
+        if (!res.ok) {
+          toast.error(data?.message || "Failed to load job")
+          return
+        }
+        let job = data.job || data
+        setForm({
+          title: job.title,
+          category: job.category,
+          location: job.location,
+          salaryMin: String(job.salaryMin),
+          salaryMax: String(job.salaryMax),
+          currency: job.currency,
+          experience: job.experience,
+          deadline: job.deadline?.split("T")[0],
+          requirements: job.requirements,
+          benefits: job.benefits,
+        })
+        setSelectedType(job.jobType)
+        setSkills(job.skills)
+        setDescription(job.description)
+      } catch {
+        toast.error("Something went wrong")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchJob()
+  }, [jobId])
 
   let skillInputRef = useRef<HTMLInputElement>(null)
 
@@ -121,17 +161,22 @@ export default function PostJobPage() {
         salaryMin: Number(form.salaryMin),
         salaryMax: Number(form.salaryMax),
       }
-      let res = await fetch("/api/jobs", {
-        method: "POST",
+      let url = jobId ? `/api/jobs/${jobId}` : "/api/jobs"
+      let method = jobId ? "PUT" : "POST"
+      let res = await fetch(url, {
+        method,
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(payload),
       })
       let data = await res.json()
       if (!res.ok) {
-        toast.error(data?.message || "Failed to post job")
+        toast.error(data?.message || "Failed to save job")
         return
       }
-      toast.success(data?.message || "Job posted successfully")
+      toast.success(
+        data?.message ||
+          (jobId ? "Job updated successfully" : "Job posted successfully"),
+      )
       router.push("/employer-dashboard")
     } catch {
       toast.error("Something went wrong")
@@ -425,7 +470,7 @@ export default function PostJobPage() {
               onClick={handlePublish}
               className="flex items-center gap-2 bg-[#2d4fd6] hover:bg-[#2440b8] text-white px-6 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer"
             >
-              Publish Job <Send size={14} />
+              {jobId ? "Update Job" : "Publish Job"} <Send size={14} />
             </button>
           </div>
         </div>
