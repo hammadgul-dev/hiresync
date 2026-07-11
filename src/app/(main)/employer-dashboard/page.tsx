@@ -74,6 +74,22 @@ export default function EmployerDashboard() {
     }
   }
 
+  let handleToggleStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      let res = await fetch(`/api/employer/${id}`, {
+        method: "PATCH",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({isActive: !currentStatus}),
+      })
+      let data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      toast.success(data.message)
+      fetchJobs()
+    } catch (err: any) {
+      toast.error(err.message || "Status update failed")
+    }
+  }
+
   let statCards = [
     {label: "Total Jobs", value: stats.total, icon: Briefcase},
     {label: "Active Jobs", value: stats.active, icon: CheckCircle},
@@ -163,15 +179,18 @@ export default function EmployerDashboard() {
                         </td>
                         <td className="py-3 text-gray-700">0</td>
                         <td className="py-3">
-                          <span
-                            className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          <button
+                            onClick={() =>
+                              handleToggleStatus(job._id, job.isActive)
+                            }
+                            className={`text-xs font-semibold px-2 py-1 rounded-full cursor-pointer ${
                               job.isActive
                                 ? "bg-green-100 text-green-700"
                                 : "bg-gray-100 text-gray-500"
                             }`}
                           >
                             {job.isActive ? "ACTIVE" : "CLOSED"}
-                          </span>
+                          </button>
                         </td>
                         <td className="py-3">
                           <div className="flex items-center gap-2">
