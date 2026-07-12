@@ -237,7 +237,7 @@ export default function JobDetailPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800 text-sm">
-                    {job.companyName}
+                    About {job.companyName}
                   </p>
                   <p
                     className="text-xs text-gray-500 max-h-24 overflow-y-auto mt-1 [&::-webkit-scrollbar]:hidden"
