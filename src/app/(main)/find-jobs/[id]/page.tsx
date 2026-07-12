@@ -21,6 +21,7 @@ export default function JobDetailPage() {
   let [activeTab, setActiveTab] = useState("Overview")
   let [savedJob, setSavedJob] = useState(false)
   let [applyOpen, setApplyOpen] = useState(false)
+  let [company, setCompany] = useState<any>(null)
 
   let tabs = ["Overview", "Requirements", "Benefits"]
 
@@ -30,6 +31,7 @@ export default function JobDetailPage() {
         let res = await fetch(`/api/jobs/${id}`)
         let data = await res.json()
         setJob(data.job)
+        setCompany(data.company)
       } catch {
         setJob(null)
       } finally {
@@ -237,7 +239,12 @@ export default function JobDetailPage() {
                   <p className="font-semibold text-gray-800 text-sm">
                     {job.companyName}
                   </p>
-                  <p className="text-xs text-gray-500">{job.category}</p>
+                  <p
+                    className="text-xs text-gray-500 max-h-24 overflow-y-auto mt-1 [&::-webkit-scrollbar]:hidden"
+                    style={{scrollbarWidth: "none", msOverflowStyle: "none"}}
+                  >
+                    {company?.companyDescription}
+                  </p>
                 </div>
               </div>
             </div>
