@@ -3,6 +3,7 @@ import {getServerSession} from "next-auth"
 import authOptions from "@/lib/auth"
 import dbConnect from "@/lib/db"
 import jobModel from "@/model/jobModel"
+import {EmployerProfile} from "@/model/profileModel"
 
 export async function GET(
   req: NextRequest,
@@ -14,7 +15,10 @@ export async function GET(
     let job = await jobModel.findById(id)
     if (!job)
       return NextResponse.json({message: "Job not found"}, {status: 404})
-    return NextResponse.json({job}, {status: 200})
+    let companyProfile = await EmployerProfile.findOne({
+      userId: job.employer,
+    }).select("companyDescription")
+    return NextResponse.json({job, company: companyProfile}, {status: 200})
   } catch {
     return NextResponse.json({message: "Something went wrong"}, {status: 500})
   }
