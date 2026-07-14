@@ -13,6 +13,9 @@ import {
   Tag,
   Bookmark,
 } from "lucide-react"
+import ApplyModal from "@/components/ApplyModal"
+import {useSession} from "next-auth/react"
+import toast from "react-hot-toast"
 
 export default function JobDetailPage() {
   let {id} = useParams()
@@ -22,6 +25,7 @@ export default function JobDetailPage() {
   let [savedJob, setSavedJob] = useState(false)
   let [applyOpen, setApplyOpen] = useState(false)
   let [company, setCompany] = useState<any>(null)
+  let {data} = useSession()
 
   let tabs = ["Overview", "Requirements", "Benefits"]
 
@@ -145,7 +149,13 @@ export default function JobDetailPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 w-full sm:w-auto">
                   <button
-                    onClick={() => setApplyOpen(true)}
+                    onClick={() => {
+                      if (data?.user?.role !== "jobSeeker") {
+                        toast.error("Only job seekers can apply")
+                        return
+                      }
+                      setApplyOpen(true)
+                    }}
                     className="bg-[#2d4fd6] hover:bg-[#2440b8] text-white px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition text-center"
                   >
                     Apply Now
@@ -250,6 +260,13 @@ export default function JobDetailPage() {
             </div>
           </div>
         </div>
+        {applyOpen && data?.user?.role === "jobSeeker" && (
+          <ApplyModal
+            jobTitle={job.title}
+            company={job.companyName}
+            onClose={() => setApplyOpen(false)}
+          />
+        )}
       </main>
     </div>
   )
