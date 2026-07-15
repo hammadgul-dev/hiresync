@@ -262,6 +262,7 @@ export default function JobDetailPage() {
         </div>
         {applyOpen && data?.user?.role === "jobSeeker" && (
           <ApplyModal
+            jobId={job._id}
             jobTitle={job.title}
             company={job.companyName}
             onClose={() => setApplyOpen(false)}

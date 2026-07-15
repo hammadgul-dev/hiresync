@@ -47,7 +47,6 @@ export default function ApplyModal({
     formData.append("email", session?.user?.email || "")
     formData.append("coverLetter", coverLetter)
     formData.append("cv", cv)
-
     setSubmitting(true)
     try {
       let res = await fetch("/api/apply", {
@@ -56,7 +55,7 @@ export default function ApplyModal({
       })
       let data = await res.json()
       if (!res.ok) throw new Error(data.message)
-      toast.success("Application submitted")
+      toast.success(data?.message || "Application submitted")
       onClose()
     } catch (err: any) {
       toast.error(err.message || "Failed to submit application")
