@@ -2,24 +2,67 @@
 
 import {useState, useRef} from "react"
 import {X, Upload, FileText} from "lucide-react"
+import {useSession} from "next-auth/react"
+import toast from "react-hot-toast"
 
 interface ApplyModalProps {
+  jobId: string
   jobTitle: string
   company: string
   onClose: () => void
 }
 
 export default function ApplyModal({
+  jobId,
   jobTitle,
   company,
   onClose,
 }: ApplyModalProps) {
-  const [cv, setCv] = useState<File | null>(null)
-  const fileRef = useRef<HTMLInputElement>(null)
+  let {data: session} = useSession()
+  let [coverLetter, setCoverLetter] = useState("")
+  let [cv, setCv] = useState<File | null>(null)
+  let [submitting, setSubmitting] = useState(false)
+  let fileRef = useRef<HTMLInputElement>(null)
 
-  const handleCv = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) setCv(file)
+  let handleCv = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let file = e.target.files?.[0]
+    if (file) {
+      if (file.type !== "application/pdf") {
+        toast.error("Only PDF files allowed")
+        return
+      }
+      setCv(file)
+    }
+  }
+
+  let handleSubmit = async () => {
+    if (!cv) {
+      toast.error("Please upload your CV")
+      return
+    }
+
+    let formData = new FormData()
+    formData.append("job", jobId)
+    formData.append("fullName", session?.user?.name || "")
+    formData.append("email", session?.user?.email || "")
+    formData.append("coverLetter", coverLetter)
+    formData.append("cv", cv)
+
+    setSubmitting(true)
+    try {
+      let res = await fetch("/api/apply", {
+        method: "POST",
+        body: formData,
+      })
+      let data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      toast.success("Application submitted")
+      onClose()
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit application")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -54,8 +97,9 @@ export default function ApplyModal({
             </label>
             <input
               type="text"
-              placeholder="John Doe"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
+              value={session?.user?.name || ""}
+              disabled
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none bg-gray-50 text-gray-500 cursor-not-allowed"
             />
           </div>
 
@@ -65,8 +109,9 @@ export default function ApplyModal({
             </label>
             <input
               type="email"
-              placeholder="john@example.com"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
+              value={session?.user?.email || ""}
+              disabled
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none bg-gray-50 text-gray-500 cursor-not-allowed"
             />
           </div>
 
@@ -76,6 +121,8 @@ export default function ApplyModal({
               <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <textarea
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
               placeholder="Why are you a great fit for this role..."
               rows={3}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent resize-none"
@@ -115,12 +162,17 @@ export default function ApplyModal({
         <div className="flex gap-2 mt-1">
           <button
             onClick={onClose}
-            className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+            disabled={submitting}
+            className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
-          <button className="flex-1 bg-[#2d4fd6] hover:bg-[#2440b8] text-white text-sm font-medium py-2.5 rounded-lg cursor-pointer transition-colors">
-            Submit Application
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="flex-1 bg-[#2d4fd6] hover:bg-[#2440b8] text-white text-sm font-medium py-2.5 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
+          >
+            {submitting ? "Submitting..." : "Submit Application"}
           </button>
         </div>
       </div>
