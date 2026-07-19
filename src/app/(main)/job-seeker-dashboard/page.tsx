@@ -1,60 +1,16 @@
 "use client"
 
-import {useState} from "react"
+import {useState, useEffect} from "react"
+import {useSession} from "next-auth/react"
 import {Briefcase, Bookmark, Eye, Send, X} from "lucide-react"
 
-const stats = [
+let stats = [
   {icon: Send, label: "Jobs Applied", value: 24},
   {icon: Bookmark, label: "Saved Jobs", value: 18},
   {icon: Eye, label: "Profile Views", value: 142},
 ]
 
-const applications = [
-  {
-    id: 1,
-    title: "Senior Frontend Developer",
-    company: "TechFlow",
-    appliedDate: "Oct 24, 2024",
-    status: "Reviewed",
-  },
-  {
-    id: 2,
-    title: "Product Designer",
-    company: "CreativeMind",
-    appliedDate: "Oct 22, 2024",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    title: "Data Scientist",
-    company: "Analytica AI",
-    appliedDate: "Oct 20, 2024",
-    status: "Accepted",
-  },
-  {
-    id: 4,
-    title: "Sales Executive",
-    company: "RetailPro",
-    appliedDate: "Oct 18, 2024",
-    status: "Rejected",
-  },
-  {
-    id: 5,
-    title: "Backend Engineer",
-    company: "CloudBase",
-    appliedDate: "Oct 15, 2024",
-    status: "Pending",
-  },
-  {
-    id: 6,
-    title: "UI/UX Designer",
-    company: "PixelCraft",
-    appliedDate: "Oct 12, 2024",
-    status: "Reviewed",
-  },
-]
-
-const savedJobs = [
+let savedJobs = [
   {
     id: 1,
     icon: "☁️",
@@ -102,23 +58,54 @@ const savedJobs = [
   },
 ]
 
-const statusStyles: Record<string, string> = {
-  Reviewed: "bg-blue-100 text-blue-700",
+let statusStyles: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-700",
   Accepted: "bg-green-100 text-green-700",
   Rejected: "bg-red-100 text-red-700",
 }
 
+type Application = {
+  _id: string
+  job: {
+    _id: string
+    title: string
+    companyName: string
+  }
+  status: string
+  createdAt: string
+}
+
 export default function JobSeekerDashboard() {
-  const [removedSaved, setRemovedSaved] = useState<number[]>([])
-  const visibleSaved = savedJobs.filter((j) => !removedSaved.includes(j.id))
+  let {data: session} = useSession()
+  let [removedSaved, setRemovedSaved] = useState<number[]>([])
+  let [applications, setApplications] = useState<Application[]>([])
+  let [loadingApps, setLoadingApps] = useState(true)
+
+  let visibleSaved = savedJobs.filter((j) => !removedSaved.includes(j.id))
+
+  useEffect(() => {
+    async function fetchApplications() {
+      try {
+        let res = await fetch("/api/applications")
+        let data = await res.json()
+        if (res.ok) {
+          setApplications(data.applications || [])
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingApps(false)
+      }
+    }
+    fetchApplications()
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] font-[Poppins]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Welcome back, John!
+            Welcome back, {session?.user?.name || "there"}!
           </h1>
           <p className="text-gray-500 text-sm mt-1">
             Here&apos;s your job search summary
@@ -152,41 +139,63 @@ export default function JobSeekerDashboard() {
                 My Applications
               </h2>
               <div className="overflow-y-auto max-h-[420px] flex flex-col gap-3 pr-0.5">
-                {applications.map((app) => (
-                  <div
-                    key={app.id}
-                    className="border border-gray-100 rounded-xl p-3 sm:p-4"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                        <div className="hidden sm:flex w-9 h-9 rounded-lg bg-[#eef1fb] items-center justify-center shrink-0">
-                          <Briefcase size={16} className="text-[#2d4fd6]" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-snug">
-                            {app.title}
-                          </p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">
-                            {app.company}
-                          </p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">
-                            Applied: {app.appliedDate}
-                          </p>
+                {loadingApps ? (
+                  <p className="text-sm text-gray-400 text-center py-6">
+                    Loading...
+                  </p>
+                ) : applications.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-6">
+                    No applications yet
+                  </p>
+                ) : (
+                  applications.map((app) => {
+                    let statusLabel =
+                      app.status.charAt(0).toUpperCase() + app.status.slice(1)
+                    return (
+                      <div
+                        key={app._id}
+                        className="border border-gray-100 rounded-xl p-3 sm:p-4"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+                            <div className="hidden sm:flex w-9 h-9 rounded-lg bg-[#eef1fb] items-center justify-center shrink-0">
+                              <Briefcase size={16} className="text-[#2d4fd6]" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-snug">
+                                {app.job?.title}
+                              </p>
+                              <p className="text-[11px] text-gray-400 mt-0.5">
+                                {app.job?.companyName}
+                              </p>
+                              <p className="text-[11px] text-gray-400 mt-0.5">
+                                Applied:{" "}
+                                {new Date(app.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  },
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
+                            <span
+                              className={`text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${statusStyles[statusLabel]}`}
+                            >
+                              {statusLabel}
+                            </span>
+                            <button className="text-xs text-[#2d4fd6] font-medium hover:underline cursor-pointer whitespace-nowrap">
+                              View
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
-                        <span
-                          className={`text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${statusStyles[app.status]}`}
-                        >
-                          {app.status}
-                        </span>
-                        <button className="text-xs text-[#2d4fd6] font-medium hover:underline cursor-pointer whitespace-nowrap">
-                          View
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    )
+                  })
+                )}
               </div>
             </div>
           </div>
