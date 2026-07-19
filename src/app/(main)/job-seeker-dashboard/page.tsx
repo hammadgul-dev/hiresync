@@ -5,8 +5,8 @@ import {useSession} from "next-auth/react"
 import {Briefcase, Bookmark, Eye, Send, X} from "lucide-react"
 
 let stats = [
-  {icon: Send, label: "Jobs Applied", value: 24},
-  {icon: Bookmark, label: "Saved Jobs", value: 18},
+  {icon: Send, label: "Jobs Applied", value: applications?.length},
+  {icon: Bookmark, label: "Saved Jobs", value: visibleSaved?.length},
   {icon: Eye, label: "Profile Views", value: 142},
 ]
 
