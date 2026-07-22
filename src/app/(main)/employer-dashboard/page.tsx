@@ -5,42 +5,26 @@ import Link from "next/link"
 import toast from "react-hot-toast"
 import {useRouter} from "next/navigation"
 
-let applicants = [
-  {
-    name: "Alex Rivero",
-    role: "Product Designer",
-    img: "https://i.pravatar.cc/40?img=1",
-  },
-  {
-    name: "Sarah Johnson",
-    role: "Frontend Engineer",
-    img: "https://i.pravatar.cc/40?img=2",
-  },
-  {
-    name: "Marcus Chen",
-    role: "Backend Developer",
-    img: "https://i.pravatar.cc/40?img=3",
-  },
-  {
-    name: "Elena Rodriguez",
-    role: "Marketing Lead",
-    img: "https://i.pravatar.cc/40?img=4",
-  },
-  {
-    name: "James Lee",
-    role: "DevOps Engineer",
-    img: "https://i.pravatar.cc/40?img=5",
-  },
-  {
-    name: "Nina Patel",
-    role: "UI/UX Designer",
-    img: "https://i.pravatar.cc/40?img=6",
-  },
-]
+type ApplicationItem = {
+  _id: string
+  job: {
+    _id: string
+    title: string
+    companyName: string
+  }
+  applicant: {
+    _id: string
+    fullName: string
+    email: string
+  }
+  status: string
+  createdAt: string
+}
 
 export default function EmployerDashboard() {
   let [stats, setStats] = useState({total: 0, active: 0, closed: 0})
   let [jobs, setJobs] = useState<any[]>([])
+  let [applications, setApplications] = useState<ApplicationItem[]>([])
   let [loading, setLoading] = useState(true)
   let router = useRouter()
 
@@ -58,8 +42,21 @@ export default function EmployerDashboard() {
     }
   }
 
+  let fetchApplications = async () => {
+    try {
+      let res = await fetch("/api/applications")
+      let data = await res.json()
+      if (res.ok) {
+        setApplications(data.applications || [])
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
     fetchJobs()
+    fetchApplications()
   }, [])
 
   let handleDelete = async (id: string) => {
@@ -89,6 +86,28 @@ export default function EmployerDashboard() {
       toast.error(err.message || "Status update failed")
     }
   }
+
+  let handleApplicationStatus = async (
+    id: string,
+    status: "accepted" | "rejected",
+  ) => {
+    try {
+      let res = await fetch(`/api/applications/${id}`, {
+        method: "PATCH",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({status}),
+      })
+      let data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      toast.success(`Application ${status}`)
+      fetchApplications()
+    } catch (err: any) {
+      toast.error(err.message || "Update failed")
+    }
+  }
+
+  let getApplicationCount = (jobId: string) =>
+    applications.filter((a) => a.job?._id === jobId).length
 
   let statCards = [
     {label: "Total Jobs", value: stats.total, icon: Briefcase},
@@ -177,7 +196,9 @@ export default function EmployerDashboard() {
                             {job.category} • {job.jobType}
                           </p>
                         </td>
-                        <td className="py-3 text-gray-700">0</td>
+                        <td className="py-3 text-gray-700">
+                          {getApplicationCount(job._id)}
+                        </td>
                         <td className="py-3">
                           <button
                             onClick={() =>
@@ -228,42 +249,66 @@ export default function EmployerDashboard() {
               Recent Applicants
             </h2>
             <div className="overflow-y-auto flex-1 pr-1 space-y-3">
-              {applicants.map((a) => (
-                <div
-                  key={a.name}
-                  className="flex flex-col gap-2 border-b pb-3 last:border-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={a.img}
-                      alt={a.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {a.name}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        Applied for{" "}
-                        <span className="text-[#2d4fd6] font-medium">
-                          {a.role}
-                        </span>
-                      </p>
+              {applications.length === 0 ? (
+                <p className="text-gray-400 text-sm">No applicants yet.</p>
+              ) : (
+                applications.map((a) => (
+                  <div
+                    key={a._id}
+                    className="flex flex-col gap-2 border-b pb-3 last:border-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#eef1fb] flex items-center justify-center text-[#2d4fd6] font-semibold text-sm shrink-0">
+                        {a?.fullName?.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {a?.fullName}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Applied for{" "}
+                          <span className="text-[#2d4fd6] font-medium">
+                            {a.job?.title}
+                          </span>
+                        </p>
+                      </div>
                     </div>
+                    {a.status === "pending" ? (
+                      <div className="flex gap-1">
+                        <button className="flex-1 text-xs py-1 bg-[#eef1fb] text-[#2d4fd6] rounded-lg font-medium hover:bg-[#2d4fd6] hover:text-white transition-colors cursor-pointer">
+                          View
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleApplicationStatus(a._id, "accepted")
+                          }
+                          className="flex-1 text-xs py-1 bg-green-50 text-green-700 rounded-lg font-medium hover:bg-green-600 hover:text-white transition-colors cursor-pointer"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleApplicationStatus(a._id, "rejected")
+                          }
+                          className="flex-1 text-xs py-1 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full w-fit ${
+                          a.status === "accepted"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-600"
+                        }`}
+                      >
+                        {a.status.toUpperCase()}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex gap-1">
-                    <button className="flex-1 text-xs py-1 bg-[#eef1fb] text-[#2d4fd6] rounded-lg font-medium hover:bg-[#2d4fd6] hover:text-white transition-colors cursor-pointer">
-                      View
-                    </button>
-                    <button className="flex-1 text-xs py-1 bg-green-50 text-green-700 rounded-lg font-medium hover:bg-green-600 hover:text-white transition-colors cursor-pointer">
-                      Accept
-                    </button>
-                    <button className="flex-1 text-xs py-1 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-600 hover:text-white transition-colors cursor-pointer">
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
