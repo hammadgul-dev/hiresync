@@ -275,7 +275,12 @@ export default function EmployerDashboard() {
                     </div>
                     {a.status === "pending" ? (
                       <div className="flex gap-1">
-                        <button className="flex-1 text-xs py-1 bg-[#eef1fb] text-[#2d4fd6] rounded-lg font-medium hover:bg-[#2d4fd6] hover:text-white transition-colors cursor-pointer">
+                        <button
+                          onClick={() =>
+                            router.push(`/profile/${a.applicant?._id}`)
+                          }
+                          className="flex-1 text-xs py-1 bg-[#eef1fb] text-[#2d4fd6] rounded-lg font-medium hover:bg-[#2d4fd6] hover:text-white transition-colors cursor-pointer"
+                        >
                           View
                         </button>
                         <button
