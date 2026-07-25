@@ -45,6 +45,44 @@ export default function JobDetailPage() {
     fetchJob()
   }, [id])
 
+  useEffect(() => {
+    let checkSaved = async () => {
+      if (data?.user?.role !== "jobSeeker") return
+      try {
+        let res = await fetch("/api/saved-jobs")
+        let result = await res.json()
+        let isSaved = result.savedJobs?.some((j: any) => j._id === id)
+        setSavedJob(isSaved)
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    checkSaved()
+  }, [id, data])
+
+  let handleSaveJob = async () => {
+    if (data?.user?.role !== "jobSeeker") {
+      toast.error("Only Job seekers can save jobs")
+      return
+    }
+    try {
+      let res = await fetch("/api/saved-jobs", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({jobId: id}),
+      })
+      let result = await res.json()
+      if (res.ok) {
+        setSavedJob(result.saved)
+        toast.success(result.saved ? "Job saved" : "Job Removed from saved")
+      } else {
+        toast.error(result.error || "Something went wrong")
+      }
+    } catch {
+      toast.error("Something went wrong")
+    }
+  }
+
   if (loading)
     return (
       <div
@@ -161,7 +199,7 @@ export default function JobDetailPage() {
                     Apply Now
                   </button>
                   <button
-                    onClick={() => setSavedJob(!savedJob)}
+                    onClick={handleSaveJob}
                     className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition ${savedJob ? "bg-[#eef1fb] text-[#2d4fd6] border-[#2d4fd6]" : "bg-white text-gray-600 border-gray-200 hover:border-[#2d4fd6]"}`}
                   >
                     <Bookmark size={15} fill={savedJob ? "#2d4fd6" : "none"} />
