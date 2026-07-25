@@ -43,6 +43,7 @@ const jobSeekerSchema = new mongoose.Schema({
       year: {type: String},
     },
   ],
+  savedJobs: [{type: mongoose.Schema.Types.ObjectId, ref: "Job"}],
 })
 
 const employerSchema = new mongoose.Schema({
