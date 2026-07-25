@@ -3,6 +3,7 @@
 import {useState, useEffect} from "react"
 import {useSession} from "next-auth/react"
 import {Briefcase, Bookmark, Eye, Send, X} from "lucide-react"
+import {useRouter} from "next/navigation"
 
 let statusStyles: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-700",
@@ -38,6 +39,7 @@ export default function JobSeekerDashboard() {
   let [loadingApps, setLoadingApps] = useState(true)
   let [savedJobs, setSavedJobs] = useState<SavedJob[]>([])
   let [loadingSaved, setLoadingSaved] = useState(true)
+  let router = useRouter()
 
   let stats = [
     {icon: Send, label: "Jobs Applied", value: applications.length},
@@ -250,7 +252,10 @@ export default function JobSeekerDashboard() {
                         </button>
                       </div>
                       <div className="hidden sm:block mt-3">
-                        <button className="w-full bg-[#2d4fd6] hover:bg-[#2440b8] text-white text-xs font-medium py-2 rounded-lg cursor-pointer transition-colors">
+                        <button
+                          onClick={() => router.push(`/find-jobs/${job._id}`)}
+                          className="w-full bg-[#2d4fd6] hover:bg-[#2440b8] text-white text-xs font-medium py-2 rounded-lg cursor-pointer transition-colors"
+                        >
                           Apply Now
                         </button>
                       </div>
