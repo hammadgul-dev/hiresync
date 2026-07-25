@@ -4,60 +4,6 @@ import {useState, useEffect} from "react"
 import {useSession} from "next-auth/react"
 import {Briefcase, Bookmark, Eye, Send, X} from "lucide-react"
 
-let stats = [
-  // {icon: Send, label: "Jobs Applied", value: applications?.length},
-  // {icon: Bookmark, label: "Saved Jobs", value: visibleSaved?.length},
-  // {icon: Eye, label: "Profile Views", value: 142},
-]
-
-let savedJobs = [
-  {
-    id: 1,
-    icon: "☁️",
-    title: "Cloud Infrastructure Architect",
-    company: "SkyNet Systems",
-    location: "Austin, TX (Remote)",
-    type: "Full-time",
-    salary: "$140k - $180k",
-  },
-  {
-    id: 2,
-    icon: "🛡️",
-    title: "Cybersecurity Analyst",
-    company: "SafeGuard Ltd",
-    location: "New York, NY",
-    type: "Hybrid",
-    salary: "$110k - $135k",
-  },
-  {
-    id: 3,
-    icon: "📢",
-    title: "Digital Marketing Manager",
-    company: "GrowthHub",
-    location: "San Francisco, CA",
-    type: "Contract",
-    salary: "$90k - $115k",
-  },
-  {
-    id: 4,
-    icon: "🧠",
-    title: "Machine Learning Engineer",
-    company: "NeuralTech",
-    location: "Remote",
-    type: "Full-time",
-    salary: "$130k - $160k",
-  },
-  {
-    id: 5,
-    icon: "📊",
-    title: "Data Analyst",
-    company: "InsightCo",
-    location: "Chicago, IL",
-    type: "Full-time",
-    salary: "$80k - $100k",
-  },
-]
-
 let statusStyles: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-700",
   Accepted: "bg-green-100 text-green-700",
@@ -75,13 +21,29 @@ type Application = {
   createdAt: string
 }
 
+type SavedJob = {
+  _id: string
+  title: string
+  companyName: string
+  location: string
+  jobType: string
+  salaryMin: number
+  salaryMax: number
+  currency: string
+}
+
 export default function JobSeekerDashboard() {
   let {data: session} = useSession()
-  let [removedSaved, setRemovedSaved] = useState<number[]>([])
   let [applications, setApplications] = useState<Application[]>([])
   let [loadingApps, setLoadingApps] = useState(true)
+  let [savedJobs, setSavedJobs] = useState<SavedJob[]>([])
+  let [loadingSaved, setLoadingSaved] = useState(true)
 
-  let visibleSaved = savedJobs.filter((j) => !removedSaved.includes(j.id))
+  let stats = [
+    {icon: Send, label: "Jobs Applied", value: applications.length},
+    {icon: Bookmark, label: "Saved Jobs", value: savedJobs.length},
+    {icon: Eye, label: "Profile Views", value: 142},
+  ]
 
   useEffect(() => {
     async function fetchApplications() {
@@ -99,6 +61,38 @@ export default function JobSeekerDashboard() {
     }
     fetchApplications()
   }, [])
+
+  useEffect(() => {
+    async function fetchSavedJobs() {
+      try {
+        let res = await fetch("/api/saved-jobs")
+        let data = await res.json()
+        if (res.ok) {
+          setSavedJobs(data.savedJobs || [])
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingSaved(false)
+      }
+    }
+    fetchSavedJobs()
+  }, [])
+
+  let handleRemoveSaved = async (jobId: string) => {
+    try {
+      let res = await fetch("/api/saved-jobs", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({jobId}),
+      })
+      if (res.ok) {
+        setSavedJobs((prev) => prev.filter((j) => j._id !== jobId))
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] font-[Poppins]">
@@ -211,42 +205,45 @@ export default function JobSeekerDashboard() {
                 </button>
               </div>
               <div className="overflow-y-auto max-h-[420px] flex flex-col gap-3 pr-0.5">
-                {visibleSaved.length === 0 ? (
+                {loadingSaved ? (
+                  <p className="text-sm text-gray-400 text-center py-6">
+                    Loading...
+                  </p>
+                ) : savedJobs.length === 0 ? (
                   <p className="text-sm text-gray-400 text-center py-6">
                     No saved jobs
                   </p>
                 ) : (
-                  visibleSaved.map((job) => (
+                  savedJobs.map((job) => (
                     <div
-                      key={job.id}
+                      key={job._id}
                       className="border border-gray-100 rounded-xl p-3 sm:p-4"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-start gap-2 sm:gap-3 min-w-0">
                           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#eef1fb] flex items-center justify-center text-sm shrink-0">
-                            {job.icon}
+                            <Briefcase size={16} className="text-[#2d4fd6]" />
                           </div>
                           <div className="min-w-0">
                             <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-snug">
                               {job.title}
                             </p>
                             <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-                              {job.company} • {job.location}
+                              {job.companyName} • {job.location}
                             </p>
                             <div className="flex gap-1.5 mt-1.5 flex-wrap">
                               <span className="text-[10px] sm:text-xs bg-[#eef1fb] text-[#2d4fd6] px-2 py-0.5 rounded-full">
-                                {job.type}
+                                {job.jobType}
                               </span>
                               <span className="text-[10px] sm:text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                                {job.salary}
+                                {job.currency} {job.salaryMin?.toLocaleString()}{" "}
+                                - {job.salaryMax?.toLocaleString()}
                               </span>
                             </div>
                           </div>
                         </div>
                         <button
-                          onClick={() =>
-                            setRemovedSaved((prev) => [...prev, job.id])
-                          }
+                          onClick={() => handleRemoveSaved(job._id)}
                           className="text-gray-300 hover:text-red-400 cursor-pointer transition-colors shrink-0 mt-0.5"
                         >
                           <X size={14} />
