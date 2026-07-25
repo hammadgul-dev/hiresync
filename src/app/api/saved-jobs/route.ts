@@ -31,3 +31,18 @@ export async function POST(req: Request) {
   await profile.save()
   return NextResponse.json({saved: !alreadySaved})
 }
+
+export async function GET() {
+  await connectDB()
+  let session = (await getServerSession(authOptions)) as any
+  if (!session || session.user.role !== "jobSeeker") {
+    return NextResponse.json({error: "Unauthorized"}, {status: 401})
+  }
+  let profile = (await JobSeekerProfile.findOne({
+    userId: session.user.id,
+  }).populate("savedJobs")) as any
+  if (!profile) {
+    return NextResponse.json({error: "Profile not found"}, {status: 404})
+  }
+  return NextResponse.json({savedJobs: profile.savedJobs})
+}
