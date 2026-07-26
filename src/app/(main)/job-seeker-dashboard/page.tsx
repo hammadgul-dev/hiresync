@@ -183,7 +183,12 @@ export default function JobSeekerDashboard() {
                             >
                               {statusLabel}
                             </span>
-                            <button className="text-xs text-[#2d4fd6] font-medium hover:underline cursor-pointer whitespace-nowrap">
+                            <button
+                              onClick={() =>
+                                router.push(`/find-jobs/${app.job?._id}`)
+                              }
+                              className="text-xs text-[#2d4fd6] font-medium hover:underline cursor-pointer whitespace-nowrap"
+                            >
                               View
                             </button>
                           </div>
