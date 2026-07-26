@@ -1,7 +1,7 @@
 "use client"
 
 import {useState, useRef} from "react"
-import {X, Upload, FileText} from "lucide-react"
+import {X, Upload, FileText, Sparkles} from "lucide-react"
 import {useSession} from "next-auth/react"
 import toast from "react-hot-toast"
 
@@ -22,6 +22,8 @@ export default function ApplyModal({
   let [coverLetter, setCoverLetter] = useState("")
   let [cv, setCv] = useState<File | null>(null)
   let [submitting, setSubmitting] = useState(false)
+  let [generatingLetter, setGeneratingLetter] = useState(false)
+  let [generatingCv, setGeneratingCv] = useState(false)
   let fileRef = useRef<HTMLInputElement>(null)
 
   let handleCv = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,6 +34,46 @@ export default function ApplyModal({
         return
       }
       setCv(file)
+    }
+  }
+
+  let handleGenerateCoverLetter = async () => {
+    setGeneratingLetter(true)
+    try {
+      let res = await fetch("/api/generate-cover-letter", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({jobId}),
+      })
+      let data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setCoverLetter(data.coverLetter)
+      toast.success("Cover letter generated")
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate cover letter")
+    } finally {
+      setGeneratingLetter(false)
+    }
+  }
+
+  let handleGenerateCv = async () => {
+    setGeneratingCv(true)
+    try {
+      let res = await fetch("/api/generate-cv", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+      })
+      let data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      let cvRes = await fetch(data.cvUrl)
+      let blob = await cvRes.blob()
+      let file = new File([blob], "generated-cv.pdf", {type: "application/pdf"})
+      setCv(file)
+      toast.success("CV generated")
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate CV")
+    } finally {
+      setGeneratingCv(false)
     }
   }
 
@@ -115,10 +157,20 @@ export default function ApplyModal({
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-700 block mb-1">
-              Cover Letter{" "}
-              <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-gray-700">
+                Cover Letter{" "}
+                <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <button
+                onClick={handleGenerateCoverLetter}
+                disabled={generatingLetter}
+                className="flex items-center gap-1 text-[11px] text-[#2d4fd6] font-medium cursor-pointer hover:underline disabled:opacity-50"
+              >
+                <Sparkles size={12} />
+                {generatingLetter ? "Generating..." : "Generate with AI"}
+              </button>
+            </div>
             <textarea
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
@@ -129,9 +181,20 @@ export default function ApplyModal({
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-700 block mb-1">
-              Upload CV <span className="text-gray-400 font-normal">(PDF)</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-gray-700">
+                Upload CV{" "}
+                <span className="text-gray-400 font-normal">(PDF)</span>
+              </label>
+              <button
+                onClick={handleGenerateCv}
+                disabled={generatingCv}
+                className="flex items-center gap-1 text-[11px] text-[#2d4fd6] font-medium cursor-pointer hover:underline disabled:opacity-50"
+              >
+                <Sparkles size={12} />
+                {generatingCv ? "Generating..." : "Generate CV with AI"}
+              </button>
+            </div>
             <div
               onClick={() => fileRef.current?.click()}
               className="w-full border-2 border-dashed border-gray-200 rounded-lg px-3 py-4 flex flex-col items-center gap-2 cursor-pointer hover:border-[#2d4fd6] hover:bg-[#f0f4ff] transition-colors"
