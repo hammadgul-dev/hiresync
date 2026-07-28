@@ -44,6 +44,8 @@ const jobSeekerSchema = new mongoose.Schema({
     },
   ],
   savedJobs: [{type: mongoose.Schema.Types.ObjectId, ref: "Job"}],
+  coverLetterCount: {type: Number, default: 0},
+  cvCount: {type: Number, default: 0},
 })
 
 const employerSchema = new mongoose.Schema({
