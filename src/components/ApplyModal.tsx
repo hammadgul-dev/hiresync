@@ -48,7 +48,7 @@ export default function ApplyModal({
       let data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setCoverLetter(data.coverLetter)
-      toast.success("Cover letter generated")
+      toast.success("Cover letter Generated!")
     } catch (err: any) {
       toast.error(err.message || "Failed to generate cover letter")
     } finally {
