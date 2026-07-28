@@ -280,15 +280,12 @@ export default function JobDetailPage() {
 
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[#eef1fb] flex items-center justify-center text-[#2d4fd6] font-bold text-sm">
-                  {initials}
-                </div>
                 <div>
                   <p className="font-semibold text-gray-800 text-sm">
                     About {job.companyName}
                   </p>
                   <p
-                    className="text-xs text-gray-500 max-h-24 overflow-y-auto mt-1 [&::-webkit-scrollbar]:hidden"
+                    className="text-xs text-gray-500 text-justify max-h-24 overflow-y-auto mt-1 [&::-webkit-scrollbar]:hidden"
                     style={{scrollbarWidth: "none", msOverflowStyle: "none"}}
                   >
                     {company?.companyDescription}
