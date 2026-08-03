@@ -46,7 +46,7 @@ export default function ApplyModal({
         body: JSON.stringify({jobId}),
       })
       let data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.message)
       setCoverLetter(data.coverLetter)
       toast.success("Cover letter Generated!")
     } catch (err: any) {
@@ -64,10 +64,13 @@ export default function ApplyModal({
         headers: {"Content-Type": "application/json"},
       })
       let data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.message)
       let cvRes = await fetch(data.cvUrl)
       let blob = await cvRes.blob()
-      let file = new File([blob], "generated-cv.pdf", {type: "application/pdf"})
+      let safeName = (session?.user?.name || "candidate").replace(/\s+/g, "_")
+      let file = new File([blob], `${safeName}_CV.pdf`, {
+        type: "application/pdf",
+      })
       setCv(file)
       toast.success("CV generated")
     } catch (err: any) {
