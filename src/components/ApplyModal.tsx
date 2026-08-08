@@ -64,8 +64,10 @@ export default function ApplyModal({
         headers: {"Content-Type": "application/json"},
       })
       let data = await res.json()
+      console.log(data)
       if (!res.ok) throw new Error(data.message)
       let cvRes = await fetch(data.cvUrl)
+      console.log(cvRes)
       let blob = await cvRes.blob()
       let safeName = (session?.user?.name || "candidate").replace(/\s+/g, "_")
       let file = new File([blob], `${safeName}_CV.pdf`, {
