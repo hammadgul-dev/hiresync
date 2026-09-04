@@ -8,15 +8,15 @@ export async function GET(
 ) {
   try {
     let {id} = await params
-
     await connectDB()
-
-    let profile = await Profile.findOne({userId: id})
-
+    let profile: any = await Profile.findOne({userId: id})
     if (!profile) {
       return NextResponse.json({error: "Profile not found"}, {status: 404})
     }
-
+    if (profile.role === "JobSeekerProfile") {
+      profile.profileViews = (profile.profileViews || 0) + 1
+      await profile.save()
+    }
     return NextResponse.json({profile}, {status: 200})
   } catch (err) {
     console.error(err)

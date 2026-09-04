@@ -39,12 +39,13 @@ export default function JobSeekerDashboard() {
   let [loadingApps, setLoadingApps] = useState(true)
   let [savedJobs, setSavedJobs] = useState<SavedJob[]>([])
   let [loadingSaved, setLoadingSaved] = useState(true)
+  let [profileViews, setProfileViews] = useState(0)
   let router = useRouter()
 
   let stats = [
     {icon: Send, label: "Jobs Applied", value: applications.length},
     {icon: Bookmark, label: "Saved Jobs", value: savedJobs.length},
-    {icon: Eye, label: "Profile Views", value: 142},
+    {icon: Eye, label: "Profile Views", value: profileViews},
   ]
 
   useEffect(() => {
@@ -63,6 +64,21 @@ export default function JobSeekerDashboard() {
     }
     fetchApplications()
   }, [])
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!session?.user) return
+      try {
+        let res = await fetch(`/api/profile`)
+        if (!res.ok) return
+        let data = await res.json()
+        setProfileViews(data.profile?.profileViews || 0)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchProfile()
+  }, [session])
 
   useEffect(() => {
     async function fetchSavedJobs() {
