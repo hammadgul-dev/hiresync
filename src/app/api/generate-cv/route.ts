@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       .replace("{{EXPERIENCE}}", experience)
 
     let completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [{role: "user", content: prompt}],
     })
     let cvText = completion.choices[0].message.content as any
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       let stream = cloudinary.uploader.upload_stream(
         {
           resource_type: "raw",
-          folder: "hiresync/cvs",
+          folder: "hiresync-cvs",
           public_id: `${safeName}_CV_${Date.now()}`,
           format: "pdf",
         },
@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
     await profile.save()
     return NextResponse.json({cvUrl: uploadResult.secure_url}, {status: 200})
   } catch (error) {
-    console.log(error)
     return NextResponse.json({message: "Something went wrong"}, {status: 500})
   }
 }
