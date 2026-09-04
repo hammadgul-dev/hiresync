@@ -78,3 +78,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: (e as Error).message}, {status: 500})
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    let session = await getServerSession(authOptions)
+    if (!session)
+      return NextResponse.json({message: "Unauthorized"}, {status: 401})
+    let userId = (session.user as any).id
+    await connectDB()
+    let profile: any =
+      (await JobSeekerProfile.findOne({userId})) ||
+      (await EmployerProfile.findOne({userId}))
+    if (!profile)
+      return NextResponse.json({message: "Profile Not Found"}, {status: 404})
+    return NextResponse.json({profile}, {status: 200})
+  } catch (e) {
+    return NextResponse.json({message: (e as Error).message}, {status: 500})
+  }
+}
