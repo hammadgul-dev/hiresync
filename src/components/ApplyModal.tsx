@@ -24,6 +24,7 @@ export default function ApplyModal({
   let [submitting, setSubmitting] = useState(false)
   let [generatingLetter, setGeneratingLetter] = useState(false)
   let [generatingCv, setGeneratingCv] = useState(false)
+  let [cvUrl, setCvUrl] = useState<string | null>(null)
   let fileRef = useRef<HTMLInputElement>(null)
 
   let handleCv = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +75,7 @@ export default function ApplyModal({
         type: "application/pdf",
       })
       setCv(file)
+      setCvUrl(data.cvUrl)
       toast.success("CV generated")
     } catch (err: any) {
       toast.error(err.message || "Failed to generate CV")
@@ -191,14 +193,23 @@ export default function ApplyModal({
                 Upload CV{" "}
                 <span className="text-gray-400 font-normal">(PDF)</span>
               </label>
-              <button
-                onClick={handleGenerateCv}
-                disabled={generatingCv}
-                className="flex items-center gap-1 text-[11px] text-[#2d4fd6] font-medium cursor-pointer hover:underline disabled:opacity-50"
-              >
-                <Sparkles size={12} />
-                {generatingCv ? "Generating..." : "Generate CV with AI"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.open(cvUrl!, "_blank")}
+                  disabled={!cvUrl}
+                  className="text-[11px] text-[#2d4fd6] font-medium cursor-pointer hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Preview
+                </button>
+                <button
+                  onClick={handleGenerateCv}
+                  disabled={generatingCv}
+                  className="flex items-center gap-1 text-[11px] text-[#2d4fd6] font-medium cursor-pointer hover:underline disabled:opacity-50"
+                >
+                  <Sparkles size={12} />
+                  {generatingCv ? "Generating..." : "Generate CV with AI"}
+                </button>
+              </div>
             </div>
             <div
               onClick={() => fileRef.current?.click()}
