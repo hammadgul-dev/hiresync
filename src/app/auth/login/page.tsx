@@ -116,7 +116,10 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+          <button
+            onClick={() => signIn("google", {callbackUrl: "/auth/post-login"})}
+            className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+          >
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
