@@ -21,7 +21,7 @@ let industries = [
 let companySizes = ["1-10", "10-50", "50-200", "200-500", "500-1000", "1000+"]
 
 export default function ProfileSetupPage() {
-  let {data: session, update} = useSession()
+  let {data: session, update, status} = useSession()
   let role = session?.user?.role as "jobSeeker" | "employer"
   let router = useRouter()
 
@@ -158,6 +158,14 @@ export default function ProfileSetupPage() {
 
   let inputCls =
     "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#2d4fd6] focus:border-transparent"
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-sm text-gray-500">Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f0f4ff] px-4 py-8">
