@@ -1,6 +1,6 @@
 "use client"
 
-import {useState, useRef, useEffect} from "react"
+import {useState, useRef, useEffect, Suspense} from "react"
 import dynamic from "next/dynamic"
 import {MapPin, Briefcase, FileText, Info, Send} from "lucide-react"
 import toast from "react-hot-toast"
@@ -24,7 +24,7 @@ let currencies = ["USD", "PKR", "EUR", "GBP", "AED"]
 let experienceLevels = ["Entry", "Mid", "Senior", "Lead", "Manager"]
 let jobTypes = ["Full Time", "Part Time", "Remote", "Hybrid"]
 
-export default function PostJobPage() {
+function PostJobContent() {
   let router = useRouter()
   let [selectedType, setSelectedType] = useState("Full Time")
   let [skills, setSkills] = useState<string[]>([])
@@ -476,5 +476,13 @@ export default function PostJobPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function PostJobPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PostJobContent />
+    </Suspense>
   )
 }
