@@ -47,7 +47,7 @@ export default function JobDetailPage() {
 
   useEffect(() => {
     let checkSaved = async () => {
-      if (data?.user?.role !== "jobSeeker") return
+      if ((data?.user as any)?.role !== "jobSeeker") return
       try {
         let res = await fetch("/api/saved-jobs")
         let result = await res.json()
