@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     let pdfBuffer: Buffer = await new Promise((resolve, reject) => {
       let doc = new PDFDocument({margin: 50})
       let chunks: any[] = []
-      doc.on("data", (chunk) => chunks.push(chunk))
+      doc.on("data", (chunk: any) => chunks.push(chunk))
       doc.on("end", () => resolve(Buffer.concat(chunks)))
       doc.on("error", reject)
       doc.fontSize(20).text(name, {align: "center"})
