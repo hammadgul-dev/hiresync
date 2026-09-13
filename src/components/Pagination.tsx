@@ -14,7 +14,7 @@ export default function Pagination({
   onPageChange,
 }: Props) {
   let getPageNumbers = () => {
-    let pages: number[] = []
+    let pages: (number | string)[] = []
     for (let i = 1; i <= totalPages; i++) {
       pages.push(i)
     }
