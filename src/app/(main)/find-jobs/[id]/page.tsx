@@ -61,7 +61,7 @@ export default function JobDetailPage() {
   }, [id, data])
 
   let handleSaveJob = async () => {
-    if (data?.user?.role !== "jobSeeker") {
+    if ((data?.user as any)?.role !== "jobSeeker") {
       toast.error("Only Job seekers can save jobs")
       return
     }
