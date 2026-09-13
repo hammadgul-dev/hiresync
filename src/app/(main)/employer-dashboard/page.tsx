@@ -259,11 +259,11 @@ export default function EmployerDashboard() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#eef1fb] flex items-center justify-center text-[#2d4fd6] font-semibold text-sm shrink-0">
-                        {a?.fullName?.charAt(0).toUpperCase()}
+                        {(a as any)?.fullName?.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900 text-sm">
-                          {a?.fullName}
+                          {(a as any)?.fullName}
                         </p>
                         <p className="text-xs text-gray-400">
                           Applied for{" "}
