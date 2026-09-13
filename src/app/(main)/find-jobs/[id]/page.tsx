@@ -188,7 +188,7 @@ export default function JobDetailPage() {
                 <div className="grid grid-cols-2 gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => {
-                      if (data?.user?.role !== "jobSeeker") {
+                      if ((data?.user as any)?.role !== "jobSeeker") {
                         toast.error("Only job seekers can apply")
                         return
                       }
@@ -295,7 +295,7 @@ export default function JobDetailPage() {
             </div>
           </div>
         </div>
-        {applyOpen && data?.user?.role === "jobSeeker" && (
+        {applyOpen && (data?.user as any)?.role === "jobSeeker" && (
           <ApplyModal
             jobId={job._id}
             jobTitle={job.title}
